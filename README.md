@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="README.ko.md">한국어</a> · <a href="README.ja.md">日本語</a> · <a href="README.zh.md">中文</a>
+  ENGLISH · VIETNAMESE · 中文 · FRANCAIS · 한국어 · 日本語
 </p>
 
 <p align="center">
@@ -24,7 +24,9 @@
 ---
 
 <p align="center">
-  <img src="docs/demo.gif" width="600" alt="Demo">
+  <video src="docs/INTRO-OPENCLAW-ENCHANTE.mp4" width="600" controls muted playsinline>
+    Your browser does not support the video tag.
+  </video>
 </p>
 
 ## What it is
@@ -58,18 +60,6 @@ npm run build:win-local   # produces dist/OPENCLAW-setup.exe (see electron-build
 ```
 
 > **Installer path**: Do not install the packaged app into your **source tree** — the uninstaller can delete that folder. Use a separate directory (e.g. `C:\Program Files\...` or `D:\Apps\...`).
-
-### Hosting the Windows installer for enchante.cloud
-
-**Cloudflare Pages** rejects static assets **larger than ~25 MiB** per file, so the ~103 MiB `OPENCLAW-setup.exe` cannot live in the site’s `public/` output. Host the binary like typical game/app downloads: **[GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases)**, **R2/S3**, or another CDN, then expose an **HTTPS URL** to the landing.
-
-The static site reads that URL from **Direction** (`GET /api/public/openclaw-downloads` → `downloadUrl`: env `OPENCLAW_WINDOWS_INSTALLER_URL` or DB column `windows_installer_url`) or from **`NEXT_PUBLIC_OPENCLAW_DOWNLOAD_URL`** on Pages.
-
-Optional local copy to a sibling `enchante.cloud` repo (e.g. for non-Cloudflare hosting only):
-
-```bash
-npm run sync-to-enchante-site
-```
 
 ## Repository layout (short)
 

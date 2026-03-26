@@ -1,6 +1,6 @@
 # OpenClaw Enchante — application architecture
 
-This document replaces the old third-party marketing / tutorial docs. It describes how **this** repo is structured and how the wizard talks to OpenClaw.
+This document describes how **this** repo is structured and how the wizard talks to OpenClaw.
 
 ---
 
