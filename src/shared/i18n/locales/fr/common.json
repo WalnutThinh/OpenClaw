@@ -1,0 +1,32 @@
+{
+  "button": {
+    "start": "Commencer",
+    "next": "Étape suivante",
+    "back": "Retour",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "retry": "Réessayer",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "update": "Mettre à jour",
+    "restart": "Redémarrer",
+    "stop": "Arrêter",
+    "change": "Changer"
+  },
+  "status": {
+    "running": "En cours",
+    "stopped": "Arrêté",
+    "starting": "Démarrage…",
+    "checking": "Vérification…",
+    "installing": "Installation…",
+    "notInstalled": "Non installé",
+    "ready": "Prêt",
+    "updating": "Mise à jour…"
+  },
+  "error": {
+    "unknown": "Une erreur inconnue s’est produite",
+    "occurred": "Une erreur s’est produite"
+  },
+  "cancelled": "Annulé",
+  "versionDisplay": "Version {{version}}"
+}

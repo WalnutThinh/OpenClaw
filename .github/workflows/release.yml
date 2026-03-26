@@ -1,0 +1,65 @@
+name: Build & Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build macOS (universal)
+        run: npm run build:mac-local
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/openclaw-enchante.dmg --clobber
+
+  build-win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build Windows (x64)
+        run: npm run build:win-local
+      - name: Verify Authenticode signature (must be signed)
+        shell: powershell
+        run: |
+          $sig = Get-AuthenticodeSignature -FilePath "dist/OPENCLAW-setup.exe"
+          if ($null -eq $sig) {
+            Write-Error "Missing Authenticode signature."
+            exit 1
+          }
+          if ($sig.Status -ne "Valid") {
+            Write-Error "Invalid Authenticode signature status: $($sig.Status)"
+            if ($sig.StatusMessage) { Write-Host $sig.StatusMessage }
+            exit 1
+          }
+          if ($null -eq $sig.SignerCertificate) {
+            Write-Error "Missing signer certificate on installer."
+            exit 1
+          }
+          Write-Host "Signer: $($sig.SignerCertificate.Subject)"
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/OPENCLAW-setup.exe --clobber

@@ -1,0 +1,30 @@
+{
+  "npmInstall": true,
+  "credentialFields": [
+    { "id": "email", "labelKey": "additionalSkills.cred.email", "type": "text" },
+    { "id": "password", "labelKey": "additionalSkills.cred.password", "type": "password" }
+  ],
+  "credentials": {
+    "wslEnvPath": "/root/.config/imap-smtp-email/.env",
+    "chmod600": true,
+    "darwinEnvPath": ".config/imap-smtp-email/.env",
+    "lines": [
+      "IMAP_HOST=imap.gmail.com",
+      "IMAP_PORT=993",
+      "IMAP_TLS=true",
+      "IMAP_REJECT_UNAUTHORIZED=true",
+      "IMAP_MAILBOX=INBOX",
+      "IMAP_USER={{email}}",
+      "IMAP_PASS={{password}}",
+      "SMTP_HOST=smtp.gmail.com",
+      "SMTP_PORT=587",
+      "SMTP_SECURE=false",
+      "SMTP_USER={{email}}",
+      "SMTP_PASS={{password}}",
+      "SMTP_FROM={{email}}",
+      "SMTP_REJECT_UNAUTHORIZED=true",
+      "ALLOWED_READ_DIRS=~/.openclaw/workspace,~/.openclaw/workspace/skills",
+      "ALLOWED_WRITE_DIRS=~/.openclaw/workspace"
+    ]
+  }
+}

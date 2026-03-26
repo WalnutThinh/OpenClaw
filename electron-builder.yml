@@ -1,0 +1,85 @@
+appId: com.enchante.openclaw
+productName: OpenClaw
+directories:
+  buildResources: build
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+asarUnpack:
+  - resources/**
+extraResources:
+  # Windows: `npm run build` runs regenerate-icons — uses resources/openclaw-logo.ico when present, else SVG → build/icon.ico
+  - from: build/icon.ico
+    to: app.ico
+  - from: skill
+    to: skill
+    filter:
+      - '**/*'
+win:
+  icon: build/icon.ico
+  executableName: OpenClaw
+  # Shown in .exe Properties / Version; firewall “Publisher” uses Authenticode when you code-sign.
+  legalTrademarks: Enchante Direction
+  forceCodeSigning: false
+  requestedExecutionLevel: asInvoker
+  # NSIS .exe needs lots of free space on the drive that holds %TEMP% (usually C:) while unpacking.
+  # If C: is almost full, use the .zip artifact: extract straight to D:\ with 7-Zip / Explorer (see docs).
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: zip
+      arch:
+        - x64
+nsis:
+  # Standard MUI license page (stable with UAC / inner elevated installer).
+  # File must be UTF-16 LE + BOM (see scripts/encode-installer-license-nsis.mjs); UTF-8 shows mojibake for Vietnamese.
+  license: build/installer-license.txt
+  artifactName: OPENCLAW-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  # Assisted installer: finish page shows “Run OpenClaw” checkbox (MUI). User must tick it to launch after Finish.
+  runAfterFinish: true
+  createDesktopShortcut: always
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  allowElevation: true
+  deleteAppDataOnUninstall: false
+  include: build/installer.nsh
+  installerSidebar: build/installerSidebar.png
+  uninstallerSidebar: build/installerSidebar.png
+  installerHeader: build/installerHeader.png
+mac:
+  icon: build/icon.icns
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
+    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  notarize: true
+  target:
+    - target: dmg
+      arch:
+        - universal
+dmg:
+  artifactName: ${name}.${ext}
+  title: ${productName}
+  background: build/background.png
+  iconSize: 80
+  window:
+    width: 540
+    height: 380
+  contents:
+    - x: 144
+      y: 178
+    - x: 396
+      y: 178
+      type: link
+      path: /Applications
+npmRebuild: false

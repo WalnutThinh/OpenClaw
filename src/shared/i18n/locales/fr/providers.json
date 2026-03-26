@@ -1,0 +1,50 @@
+{
+  "desc": {
+    "anthropic/claude-sonnet-4-6": "Dernier modèle équilibré (recommandé)",
+    "anthropic/claude-opus-4-6": "Dernière performance maximale",
+    "anthropic/claude-sonnet-4-5": "Équilibré",
+    "anthropic/claude-opus-4-5": "Haute performance",
+    "anthropic/claude-haiku-4-5": "Rapide et économique",
+    "google/gemini-3.1-pro-preview": "Dernière haute performance (recommandé)",
+    "google/gemini-3-pro-preview": "Haute performance",
+    "google/gemini-3-flash-preview": "Dernier modèle rapide",
+    "google/gemini-3.1-flash-lite-preview": "Ultra rapide et économique",
+    "google/gemini-2.5-pro": "Haute performance stable",
+    "google/gemini-2.5-flash": "Équilibré stable",
+    "openai/gpt-5.4": "Dernière performance maximale (recommandé)",
+    "openai/gpt-5.4-mini": "Dernier modèle rapide et économique",
+    "openai/gpt-5.4-nano": "Ultra léger",
+    "openai/gpt-5.2": "Stable",
+    "openai/o4-mini": "Raisonnement",
+    "openai-codex/gpt-5.4": "Dernier modèle code (recommandé)",
+    "openai-codex/gpt-5.3-codex": "Code stable",
+    "openai-codex/gpt-5.2-codex": "Ancienne génération",
+    "minimax/MiniMax-M2.7": "Dernier (recommandé)",
+    "minimax/MiniMax-M2.7-highspeed": "Dernière vitesse élevée",
+    "minimax/MiniMax-M2.5": "Code / agent SOTA",
+    "minimax/MiniMax-M2.5-highspeed": "Grande vitesse",
+    "zai/glm-5": "Dernière performance maximale (recommandé)",
+    "zai/glm-5-turbo": "Rapide, haute performance",
+    "zai/glm-4.7": "Haute performance",
+    "zai/glm-4.7-flashx": "Rapide",
+    "zai/glm-4.7-flash": "Gratuit",
+    "deepseek/deepseek-chat": "Dernier (recommandé)",
+    "deepseek/deepseek-reasoner": "Raisonnement",
+    "ollama/llama3.2:3b": "Petit et rapide (recommandé · ~2 Go)",
+    "ollama/llama3.3": "Très grand · ~43 Go — lancez ollama pull llama3.3 avant",
+    "ollama/qwen3": "Multilingue",
+    "ollama/gemma3": "Léger"
+  },
+  "apiKeyPlaceholder": {
+    "glm": "Saisir la clé API"
+  },
+  "consoleLabel": {
+    "google": "Obtenir une clé API sur AI Studio",
+    "openai": "Obtenir une clé API sur la plateforme",
+    "anthropic": "Obtenir une clé API sur la console",
+    "minimax": "Obtenir une clé API sur la plateforme",
+    "glm": "Obtenir une clé API sur Z.AI",
+    "deepseek": "Obtenir une clé API sur DeepSeek",
+    "ollama": "Télécharger Ollama"
+  }
+}

@@ -1,0 +1,64 @@
+OPENCLAW — LICENSE, SECURITY NOTICE & TERMS (INSTALLER)
+
+This installer bundles software that includes OpenClaw (upstream). By installing you acknowledge the following.
+
+— OFFICIAL OPENCLAW LICENSE (MIT) —
+
+Copyright (c) 2025 Peter Steinberger
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Full text online: https://github.com/openclaw/openclaw/blob/main/LICENSE
+
+— SECURITY —
+
+If you believe you have found a security issue in OpenClaw, report it responsibly: security@openclaw.ai (or the maintainers of the affected repository). See the upstream security policy: https://github.com/openclaw/openclaw/blob/main/SECURITY.md and https://trust.openclaw.ai
+
+OpenClaw assumes a trusted-operator / personal-assistant deployment model. You are responsible for gateway auth, network exposure, tools, plugins, and channel (bot) configuration.
+
+— ABOUT OPENCLAW (SUMMARY) —
+
+OpenClaw is a personal AI assistant you run on your own devices. Documentation: https://docs.openclaw.ai · Repository: https://github.com/openclaw/openclaw
+
+— THIS BUILD (ENCHANTE DIRECTION) —
+
+Third-party and bundled components remain under their respective licenses. This packaged build is provided by Enchante Direction. Use implies acceptance of applicable OpenClaw upstream terms and Enchante Direction terms where relevant.
+
+After install, use the in-app tools to repair or verify OpenClaw (e.g. doctor --fix). The Windows installer does not run WSL or long shell commands by itself.
+
+---
+OPENCLAW — GIẤY PHÉP, BẢO MẬT & ĐIỀU KHOẢN (TRÌNH CÀI)
+
+Trình cài gói phần mềm có chứa OpenClaw (upstream). Bằng việc cài đặt, bạn xác nhận các nội dung sau.
+
+— GIẤY PHÉP OPENCLAW (MIT) —
+
+Copyright (c) 2025 Peter Steinberger
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Văn bản đầy đủ: https://github.com/openclaw/openclaw/blob/main/LICENSE
+
+— BẢO MẬT —
+
+Nếu bạn phát hiện lỗ hổng bảo mật liên quan OpenClaw, vui lòng báo cáo có trách nhiệm: security@openclaw.ai (hoặc maintainer của kho mã nguồn liên quan). Chính sách bảo mật upstream: https://github.com/openclaw/openclaw/blob/main/SECURITY.md và https://trust.openclaw.ai
+
+OpenClaw giả định mô hình người vận hành đáng tin / trợ lý cá nhân. Bạn chịu trách nhiệm về xác thực gateway, mạng, công cụ, plugin và cấu hình kênh (bot).
+
+— GIỚI THIỆU NGẮN —
+
+OpenClaw là trợ lý AI cá nhân chạy trên thiết bị của bạn. Tài liệu: https://docs.openclaw.ai · Mã nguồn: https://github.com/openclaw/openclaw
+
+— BẢN BUILD (ENCHANTE DIRECTION) —
+
+Các thành phần bên thứ ba và gói đi kèm vẫn theo giấy phép riêng. Bản đóng gói này do Enchante Direction cung cấp; sử dụng đồng nghĩa chấp thuận điều khoản upstream OpenClaw và điều khoản Enchante Direction khi có liên quan.
+
+Sau khi cài, dùng công cụ trong ứng dụng để sửa/kiểm tra OpenClaw (ví dụ doctor --fix). Trình cài Windows không tự chạy WSL hay lệnh shell dài.

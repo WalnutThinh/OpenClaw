@@ -1,0 +1,39 @@
+---
+description: Enchante targets non-developers — no terminal as primary UX; automate and explain in-app
+alwaysApply: true
+---
+
+# OpenClaw Enchante — user-first product rule
+
+## Who the app is for
+
+- **End users are not programmers.** Their job is **install → use**. They must not be asked to “open PowerShell/CMD/WSL and type commands” as the **normal** way to fix or configure the product.
+- Asking them to manually run `openclaw …` in a terminal is **equivalent to asking them to install and operate OpenClaw by themselves** — **avoid** that as the default path.
+
+## What we ship in one application
+
+- **Encapsulate** OpenClaw/WSL operations inside Enchante: IPC, main-process services, wizard, tray, logs in the UI.
+- **Pre-flight / health checks** (gateway, channels, auth) should run **from the app** where possible; show **clear status** (OK / needs action) before or after onboarding.
+- **Read and classify errors** from gateway/logs automatically; show **plain-language** messages in the renderer — not raw stack traces as the only feedback.
+
+## Error ownership
+
+| Type | Action |
+|------|--------|
+| **Software / packaging bug** (our code, IPC, wrong paths, regressions) | **We fix** in Enchante; do not blame the user. |
+| **User/environment** (wrong API key, billing, firewall, Zalo OA token, OS permissions) | **Explain in-app** what went wrong and **one guided path** (e.g. “check API key in Settings”, “add credits in provider dashboard”) — still **no terminal** as the only instruction. |
+
+## Documentation split
+
+- **`docs/` for developers & AI**: may reference WSL/CLI for debugging and parity with upstream.
+- **User-facing copy (wizard, modals, i18n)**: must **not** rely on “run this in bash” as the sole fix. If a CLI step remains temporarily unavoidable, treat it as **debt** and file a follow-up to **wrap it in UI** (button → IPC → `spawn` in main).
+
+## Feature work checklist
+
+When adding flows that upstream solves via CLI (pairing, doctor, plugin config):
+
+1. Prefer **IPC + UI** (list codes, approve, show status).
+2. Add **telemetry/log lines** in-app for support.
+3. Update **i18n** for all shipped locales when adding strings.
+
+See **`docs/PRODUCT-PRINCIPLES.md`** for the full rationale.

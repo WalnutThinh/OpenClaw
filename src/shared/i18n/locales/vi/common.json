@@ -1,0 +1,32 @@
+{
+  "button": {
+    "start": "Bắt đầu",
+    "next": "Bước tiếp",
+    "back": "Quay lại",
+    "cancel": "Hủy",
+    "close": "Đóng",
+    "retry": "Thử lại",
+    "confirm": "Xác nhận",
+    "delete": "Xóa",
+    "update": "Cập nhật",
+    "restart": "Khởi động lại",
+    "stop": "Dừng",
+    "change": "Đổi"
+  },
+  "status": {
+    "running": "Đang chạy",
+    "stopped": "Đã dừng",
+    "starting": "Đang khởi động...",
+    "checking": "Đang kiểm tra...",
+    "installing": "Đang cài đặt...",
+    "notInstalled": "Chưa cài",
+    "ready": "Sẵn sàng",
+    "updating": "Đang cập nhật..."
+  },
+  "error": {
+    "unknown": "Đã xảy ra lỗi không xác định",
+    "occurred": "Đã xảy ra lỗi"
+  },
+  "cancelled": "Đã hủy",
+  "versionDisplay": "Phiên bản {{version}}"
+}

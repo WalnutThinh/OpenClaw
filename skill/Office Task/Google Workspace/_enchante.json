@@ -1,0 +1,15 @@
+{
+  "wizardSummary": "Sheets, Docs, Drive, Calendar — gog OAuth and/or service account JSON (wizard writes the key for API scripts).",
+  "credentialFields": [
+    {
+      "id": "serviceAccountJson",
+      "labelKey": "steps:additionalSkills.cred.serviceAccountJson",
+      "type": "text"
+    }
+  ],
+  "serviceAccountJson": {
+    "wslPath": "/root/.config/openclaw-google-workspace/service-account.json",
+    "darwinPath": ".config/openclaw-google-workspace/service-account.json",
+    "chmod600": true
+  }
+}
