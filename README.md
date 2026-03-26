@@ -24,9 +24,9 @@
 ---
 
 <p align="center">
-  <video src="docs/INTRO-OPENCLAW-ENCHANTE.mp4" width="600" controls muted playsinline>
-    Your browser does not support the video tag.
-  </video>
+  <a href="docs/INTRO-OPENCLAW-ENCHANTE.mp4">
+    <img src="docs/INTRO-OPENCLAW-ENCHANTE.gif" width="600" alt="OpenClaw Enchante demo">
+  </a>
 </p>
 
 ## What it is
