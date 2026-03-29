@@ -6,8 +6,7 @@
   "welcome": {
     "title": "AI Agent của riêng bạn, chỉ một cú nhấp",
     "desc": "Cài OpenClaw nhanh và dễ dàng,\nsau đó trò chuyện với AI trên Telegram",
-    "installingTitle": "Đang cài đặt OpenClaw",
-    "customizedBy": "Tùy chỉnh bởi",
+    "policyHint": "Vui lòng đọc nội dung bên dưới. Nút Bắt đầu chỉ bật sau khi bạn tick đồng ý điều khoản.",
     "termsAgree": "Tôi đã đọc và đồng ý với <terms>Điều khoản dịch vụ</terms> và <privacy>Chính sách quyền riêng tư</privacy>.",
     "start": "Bắt đầu",
     "language": "Ngôn ngữ"

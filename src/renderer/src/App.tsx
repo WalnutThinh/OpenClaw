@@ -305,7 +305,7 @@ function App(): React.JSX.Element {
               />
             )}
             <span className="text-[10px] font-mono tabular-nums text-text-muted/50">
-              {t('versionDisplay', { version: (version || '1.1.02').replace(/^v/i, '') })}
+              {t('versionDisplay', { version: (version || '1.1.2').replace(/^v/i, '') })}
             </span>
           </div>
           <div className="flex flex-1 items-center justify-center gap-2">

@@ -1,3 +1,4 @@
+import { spawn } from 'child_process'
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { createWriteStream } from 'fs'
 import {
@@ -10,7 +11,7 @@ import {
   unlinkSync
 } from 'fs'
 import { randomBytes } from 'crypto'
-import { join, dirname, resolve } from 'path'
+import { basename, join, dirname, resolve } from 'path'
 import { tmpdir } from 'os'
 import { finished } from 'stream/promises'
 import { fileURLToPath } from 'url'
@@ -22,6 +23,30 @@ let mainWindow: BrowserWindow | null = null
 
 type InstallManifest = { appZipUrl: string }
 
+/** GitHub release v1.1.02 has asset OpenClaw-1.1.2-win.zip; ...1.1.02-win.zip 404s. */
+function normalizeKnownBrokenGithubZipUrl(url: string): string {
+  try {
+    const u = new URL(url)
+    if (u.hostname !== 'github.com') return url
+    const parts = u.pathname.split('/').filter(Boolean)
+    const d = parts.indexOf('download')
+    if (d < 0 || parts.length < d + 3) return url
+    if (
+      parts[0] === 'WalnutThinh' &&
+      parts[1] === 'OpenClaw' &&
+      parts[d + 1] === 'v1.1.02' &&
+      parts[d + 2] === 'OpenClaw-1.1.02-win.zip'
+    ) {
+      parts[d + 2] = 'OpenClaw-1.1.2-win.zip'
+      u.pathname = `/${parts.join('/')}`
+      return u.toString()
+    }
+  } catch {
+    return url
+  }
+  return url
+}
+
 function readInstallManifest(): InstallManifest | null {
   if (!app.isPackaged) return null
   const p = join(process.resourcesPath, 'install-manifest.json')
@@ -32,7 +57,8 @@ function readInstallManifest(): InstallManifest | null {
     const url = (j as InstallManifest).appZipUrl
     if (typeof url !== 'string') return null
     const u = url.trim()
-    if (u.startsWith('https://') || u.startsWith('http://')) return { appZipUrl: u }
+    if (u.startsWith('https://') || u.startsWith('http://'))
+      return { appZipUrl: normalizeKnownBrokenGithubZipUrl(u) }
   } catch {
     /* ignore */
   }
@@ -53,7 +79,7 @@ function resolveInstallSource(): Source {
     const local = devPayloadZipPath()
     if (existsSync(local)) return { kind: 'local', path: local }
     const envUrl = process.env.OPENCLAW_APP_ZIP_URL?.trim()
-    if (envUrl) return { kind: 'remote', url: envUrl }
+    if (envUrl) return { kind: 'remote', url: normalizeKnownBrokenGithubZipUrl(envUrl) }
     return { kind: 'none', reason: 'DEV_NO_ZIP' }
   }
   const man = readInstallManifest()
@@ -71,7 +97,9 @@ async function downloadToFile(
 ): Promise<void> {
   const res = await fetch(urlStr, { redirect: 'follow' })
   if (!res.ok) {
-    throw new Error(`Download failed (HTTP ${res.status}). Check the URL and your network.`)
+    throw new Error(
+      `Download failed (HTTP ${res.status}). URL: ${urlStr}. Check the release tag, asset name, and your network.`
+    )
   }
   const cl = res.headers.get('content-length')
   const total = cl ? parseInt(cl, 10) : undefined
@@ -117,6 +145,19 @@ async function downloadToFile(
 }
 
 /** electron-builder zip has one top-level folder (e.g. OpenClaw-win32-x64); flatten so OpenClaw.exe is in install root. */
+function resolveWindowIcon(): string | undefined {
+  const candidates: string[] = []
+  if (app.isPackaged) {
+    candidates.push(join(process.resourcesPath, 'icon.ico'))
+  }
+  candidates.push(join(__dirname, '../../build/icon.ico'))
+  candidates.push(join(app.getAppPath(), 'build', 'icon.ico'))
+  for (const p of candidates) {
+    if (existsSync(p)) return p
+  }
+  return undefined
+}
+
 function flattenSingleAppFolder(root: string): void {
   if (existsSync(join(root, 'OpenClaw.exe'))) return
   const entries = readdirSync(root, { withFileTypes: true })
@@ -131,14 +172,16 @@ function flattenSingleAppFolder(root: string): void {
 }
 
 function createWindow(): void {
+  const icon = resolveWindowIcon()
   mainWindow = new BrowserWindow({
     frame: false,
     width: 520,
-    height: 580,
+    height: 620,
     resizable: false,
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#f5f3ed',
+    ...(icon ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
       contextIsolation: true,
@@ -159,28 +202,64 @@ function createWindow(): void {
   }
 }
 
-function runExtract(zipPath: string, targetRoot: string, wc: Electron.WebContents): Promise<void> {
+/** Windows built-in bsdtar is usually much faster than extract-zip for huge entries (e.g. app.asar). */
+function tryExtractWindowsTar(zipPath: string, targetRoot: string, wc: Electron.WebContents): Promise<boolean> {
+  if (!wc.isDestroyed()) {
+    wc.send('setup:extract-progress', { native: true })
+  }
+  return new Promise((resolve) => {
+    const child = spawn('tar', ['-xf', zipPath, '-C', targetRoot], {
+      windowsHide: true,
+      stdio: ['ignore', 'ignore', 'pipe']
+    })
+    let errBuf = ''
+    child.stderr?.on('data', (chunk) => {
+      errBuf += String(chunk)
+    })
+    child.on('error', () => resolve(false))
+    child.on('close', (code) => {
+      if (code !== 0 && errBuf) {
+        console.warn(`[openclaw-setup] tar extract exited ${code}: ${errBuf.slice(0, 400)}`)
+      }
+      resolve(code === 0)
+    })
+  })
+}
+
+function runExtractWithExtractZip(zipPath: string, targetRoot: string, wc: Electron.WebContents): Promise<void> {
   let fileCount = 0
   let lastProgressAt = 0
+  let currentFile: string | undefined
+  let lastSentFile: string | undefined
   const pushProgress = (): void => {
     const now = Date.now()
-    if (now - lastProgressAt < 350 && fileCount % 30 !== 0) return
+    const fileChanged = currentFile !== lastSentFile
+    if (!fileChanged && now - lastProgressAt < 350 && fileCount % 30 !== 0) return
     lastProgressAt = now
+    lastSentFile = currentFile
     if (!wc.isDestroyed()) {
-      wc.send('setup:extract-progress', { files: fileCount })
+      wc.send('setup:extract-progress', { files: fileCount, currentFile })
     }
   }
   return extract(zipPath, {
     dir: targetRoot,
-    onEntry: () => {
+    onEntry: (entry) => {
       fileCount += 1
+      currentFile = basename(entry.fileName.replace(/\\/g, '/'))
       pushProgress()
     }
-  }).then(() => {
-    if (!wc.isDestroyed()) {
-      wc.send('setup:extract-progress', { files: fileCount, done: true })
-    }
   })
+}
+
+async function runExtract(zipPath: string, targetRoot: string, wc: Electron.WebContents): Promise<void> {
+  if (process.platform === 'win32') {
+    const ok = await tryExtractWindowsTar(zipPath, targetRoot, wc)
+    if (ok) return
+    if (!wc.isDestroyed()) {
+      wc.send('setup:extract-progress', { native: false })
+    }
+  }
+  await runExtractWithExtractZip(zipPath, targetRoot, wc)
 }
 
 app.whenReady().then(() => {
@@ -252,6 +331,9 @@ app.whenReady().then(() => {
       }
       await runExtract(zipPath, targetRoot, wc)
       flattenSingleAppFolder(targetRoot)
+      if (!wc.isDestroyed()) {
+        wc.send('setup:extract-progress', { done: true })
+      }
       const exe = join(targetRoot, 'OpenClaw.exe')
       if (!existsSync(exe)) {
         return { ok: false as const, error: 'EXTRACT_INCOMPLETE' }
@@ -274,6 +356,15 @@ app.whenReady().then(() => {
 
   ipcMain.handle('setup:open-path', async (_evt, p: string) => {
     const err = await shell.openPath(p)
+    return err || null
+  })
+
+  ipcMain.handle('setup:open-app-and-close', async (_evt, p: string) => {
+    if (typeof p !== 'string' || !p.trim()) return 'INVALID_PATH'
+    const err = await shell.openPath(p.trim())
+    if (!err) {
+      mainWindow?.close()
+    }
     return err || null
   })
 

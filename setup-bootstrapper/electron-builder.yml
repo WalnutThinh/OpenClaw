@@ -12,6 +12,8 @@ files:
 extraResources:
   - from: build/install-manifest.json
     to: install-manifest.json
+  - from: build/icon.ico
+    to: icon.ico
 win:
   executableName: OPENCLAW-setup
   icon: build/icon.ico

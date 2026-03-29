@@ -21,9 +21,15 @@ contextBridge.exposeInMainWorld('setupAPI', {
   pickFolder: (): Promise<string | null> => ipcRenderer.invoke('setup:pick-folder'),
   install: (parentDir: string) => ipcRenderer.invoke('setup:install', parentDir),
   openPath: (p: string): Promise<string | null> => ipcRenderer.invoke('setup:open-path', p),
+  openAppAndClose: (p: string): Promise<string | null> => ipcRenderer.invoke('setup:open-app-and-close', p),
   reveal: (p: string): Promise<void> => ipcRenderer.invoke('setup:reveal', p),
   subscribeExtractProgress: (
-    callback: (payload: { files: number; done?: boolean }) => void
+    callback: (payload: {
+      files?: number
+      currentFile?: string
+      done?: boolean
+      native?: boolean
+    }) => void
   ): (() => void) => subscribeChannel('setup:extract-progress', callback),
   subscribeDownloadProgress: (
     callback: (payload: { received: number; total?: number }) => void
@@ -49,9 +55,15 @@ declare global {
         | { ok: false; error: string }
       >
       openPath: (p: string) => Promise<string | null>
+      openAppAndClose: (p: string) => Promise<string | null>
       reveal: (p: string) => Promise<void>
       subscribeExtractProgress: (
-        callback: (payload: { files: number; done?: boolean }) => void
+        callback: (payload: {
+          files?: number
+          currentFile?: string
+          done?: boolean
+          native?: boolean
+        }) => void
       ) => () => void
       subscribeDownloadProgress: (
         callback: (payload: { received: number; total?: number }) => void

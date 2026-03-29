@@ -13,8 +13,8 @@ Use this when implementing releases, CI, or explaining how **OPENCLAW-setup.exe*
 
 ## Version & naming (single policy)
 
-- App semver / display rules: **`docs/RELEASE-VERSIONING-GUIDE.md`** (format `x.x.xx`, bump `package.json` version).
-- The Windows app zip name comes from **electron-builder** + root `package.json` `version` + `productName` (`OpenClaw`), e.g. **`OpenClaw-1.1.02-win.zip`** (exact pattern may vary with electron-builder 26: `*-win.zip` or legacy `*-win32-x64.zip`).  
+- App semver / display rules: **`docs/RELEASE-VERSIONING-GUIDE.md`** (standard **`x.y.z`**, bump root `package.json` `version`).
+- The Windows app zip name comes from **electron-builder** + root `package.json` `version` + `productName` (`OpenClaw`), e.g. **`OpenClaw-1.1.2-win.zip`** (or legacy `*-win32-x64.zip` if present).  
   **Always** use the **actual filename** produced in `dist/` after `build:win-app-zip`.
 
 ## Build: bake the zip URL into the installer
@@ -25,9 +25,10 @@ The bootstrapper does **not** embed the zip; it downloads at install time from `
 2. Publish that zip as a **GitHub Release** asset (same repo you use for releases; name should match what you will put in the URL).
 3. Build the small setup with a **full HTTPS URL** to that asset, e.g.:
    ```bash
-   set OPENCLAW_APP_ZIP_URL=https://github.com/OWNER/REPO/releases/download/v1.1.02/OpenClaw-1.1.02-win.zip
+   set OPENCLAW_APP_ZIP_URL=https://github.com/OWNER/REPO/releases/download/v1.1.2/OpenClaw-1.1.2-win.zip
    npm run build:win-setup
    ```
+   The segment after `download/` must be your **actual GitHub tag** (e.g. if the release is tagged `v1.1.02` but the zip is named `OpenClaw-1.1.2-win.zip`, use `v1.1.02` in the URL — see **`docs/RELEASE-VERSIONING-GUIDE.md`** §5).
    Or from PowerShell: `$env:OPENCLAW_APP_ZIP_URL="..."; npm run build:win-setup`
 4. Output: **`dist/installer/OPENCLAW-setup.exe`**.
 

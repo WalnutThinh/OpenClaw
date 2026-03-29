@@ -20,6 +20,10 @@
 
 - Đợi thêm **10–15 phút** một lần (sau khi đã loại trừ thư mục) — đôi khi chỉ chậm do quét lần đầu.
 - Tạm **tạm dừng bảo vệ theo thời gian thực** (chỉ khi bạn hiểu rủi ro, và ưu tiên đã thêm loại trừ thư mục).
+- Trước mỗi lần `npm run build:win-setup`, script **`prepare-installer-pack.mjs`** sẽ `taskkill` `OPENCLAW-setup.exe` và xóa `dist/installer/OPENCLAW-setup.exe` cũ (thử lại vài lần). Nếu vẫn báo không xóa được → đúng là có process/AV giữ file; dùng **Task Manager** hoặc **Resource Monitor** → tab CPU → *Associated Handles* → tìm `OPENCLAW-setup.exe`.
+- Build **không ký** (nhanh hơn, ít chạm file hơn): trong PowerShell trước khi build:  
+  `$env:CSC_IDENTITY_AUTO_DISCOVERY='false'; npm run build:win-setup`  
+  (Bản phát hành có Authenticode vẫn nên ký trong CI hoặc bước riêng.)
 
 ### Custom installer: **2 file** (nhỏ + gói app tải từ mạng)
 
@@ -46,7 +50,7 @@ Luồng người dùng: chạy `.exe` → tải zip từ mạng → giải nén 
 ### NSIS: chính sách, branding, sidebar
 
 - `npm install` chạy `scripts/patch-nsis-multiuser-ui.mjs` để **ẩn** dòng trạng thái kiểu “There is already a per-user installation… Will reinstall” trên trang chọn cài cho ai (template `multiUserUi.nsh` trong `app-builder-lib`).
-- `npm run build` chạy `prepare-installer-assets`: ghi `build/installer-display-version.nsh` từ `package.json` (giữ dạng **x.x.xx** trên dòng branding, theo `package.json`) và tạo lại `build/installerSidebar.png` (164×314, logo OpenClaw + “Customized by Enchante Direction”).
+- `npm run build` chạy `prepare-installer-assets`: ghi `build/installer-display-version.nsh` từ `package.json` (semver **x.y.z** trên dòng branding) và tạo lại `build/installerSidebar.png` (164×314, logo OpenClaw + “Customized by Enchante Direction”).
 - Trang **chính sách** (checkbox bắt buộc) nằm trong `build/installer.nsh` (`customPageAfterChangeDir`): **sau** trang chọn thư mục, **trước** bước giải nén. (Không đặt trang này làm “welcome” đầu tiên — MUI2 của electron-builder cần `MUI_PAGE_INIT` từ trang chế độ cài trước, nếu không trình cài có thể thoát im lặng.)
 - **Không** chạy `wsl` / `openclaw doctor --fix` trong `customInstall` của NSIS: lệnh đó dễ **chặn** bước cài rất lâu, thanh tiến trình MUI thường **đứng ~70%** trong lúc chờ → dễ hiểu nhầm là trình cài treo hoặc tự thoát. Bảo mật/sửa lỗi dùng **Fixer trong app** sau khi cài.
 - **Ghim taskbar / shortcut trỏ `OpenClaw-Enchante.exe`:** bản build cũ lấy tên exe từ package npm; hiện `electron-builder.yml` dùng `executableName: OpenClaw` → chỉ có `OpenClaw.exe`. `build/installer.nsh` trong `customInstall` tạo **hard link** `OpenClaw-Enchante.exe` trỏ cùng file với `OpenClaw.exe` trên **NTFS** (không nhân đôi dung lượng) để shortcut đã ghim còn mở được sau khi cài/cập nhật lại. Bản **ZIP** giải nén sang ổ không hỗ trợ hard link: bỏ ghim cũ, mở `OpenClaw.exe` rồi ghim lại.
@@ -87,7 +91,7 @@ Xem **[WINDOWS-INSTALL-DRIVES.md](WINDOWS-INSTALL-DRIVES.md)** — giải thích
 - Script `npm run sync-to-enchante-site` đã chặn upload file `.exe` nếu chữ ký không hợp lệ trên máy Windows.
 - Có thể chạy 1 lệnh để tải artifact đã ký từ GitHub Release rồi sync website:
   - `npm run sync-signed-to-enchante-site`
-  - Mặc định lấy release mới nhất; có thể chỉ định tag: `RELEASE_TAG=v1.1.02 npm run sync-signed-to-enchante-site`
+  - Mặc định lấy release mới nhất; có thể chỉ định tag: `RELEASE_TAG=v1.1.2 npm run sync-signed-to-enchante-site`
 - Nếu bạn publish qua AWS CLI / R2, dùng lệnh:
   - `S3_BUCKET=download S3_KEY=windows/OPENCLAW-setup.exe S3_ENDPOINT_URL=https://<account>.r2.cloudflarestorage.com npm run publish-signed-installer-s3`
   - Script sẽ chặn upload nếu `dist/installer/OPENCLAW-setup.exe` chưa có Authenticode `Valid`.

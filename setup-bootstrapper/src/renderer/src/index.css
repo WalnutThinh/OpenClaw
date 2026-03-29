@@ -35,6 +35,17 @@ body,
   -webkit-app-region: drag;
 }
 
+.setup-chrome.setup-chrome--brand {
+  justify-content: space-between;
+  padding-left: 12px;
+}
+
+.setup-chrome .setup-chrome-brand {
+  display: flex;
+  align-items: center;
+  -webkit-app-region: drag;
+}
+
 .setup-chrome .setup-close {
   -webkit-app-region: no-drag;
   display: flex;

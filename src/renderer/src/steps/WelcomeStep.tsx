@@ -3,41 +3,35 @@ import { Trans, useTranslation } from 'react-i18next'
 import Button from '../components/Button'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import OpenClawBrandCenter from '../components/OpenClawBrandCenter'
-import enchanteDirectionSrc from '../assets/enchante-direction-black.svg'
+import WelcomePolicyBody from '../components/WelcomePolicyBody'
 
 const TERMS_URL = 'https://enchante.cloud'
 const PRIVACY_URL = 'https://enchante.cloud'
 
-/** In-app first run (sau khi cài xong): điều khoản + Get Started — không phải màn setup.exe. */
+/** First step after opening the app: read terms (scroll), accept, then Get Started. */
 export default function WelcomeStep({ onNext }: { onNext: () => void }): React.JSX.Element {
   const { t } = useTranslation('steps')
   const [termsAccepted, setTermsAccepted] = useState(false)
 
   return (
-    <div className="relative z-10 isolate flex flex-1 flex-col items-center justify-center px-8 pb-8 pt-4">
-      <div className="absolute top-4 right-4 z-20">
+    <div className="relative z-10 isolate flex min-h-0 flex-1 flex-col px-6 pb-6 pt-3 sm:px-8">
+      <div className="absolute right-4 top-3 z-20 sm:right-6 sm:top-4">
         <LanguageSwitcher />
       </div>
 
-      <div className="relative flex w-full max-w-md flex-col items-center gap-8 text-center">
+      <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col items-center gap-4 text-center sm:gap-5">
         <div className="pointer-events-none absolute inset-0 mx-auto aspect-square max-w-md scale-150 rounded-full bg-primary/10 blur-3xl" />
-        <OpenClawBrandCenter />
-
-        <div className="relative flex flex-col items-center gap-3">
-          <h1 className="text-[15px] font-medium tracking-tight text-text-muted sm:text-base">
-            {t('welcome.installingTitle')}
-          </h1>
-          <div className="flex items-center justify-center gap-2 text-[11px] text-text-muted/55">
-            <span>{t('welcome.customizedBy')}</span>
-            <img
-              src={enchanteDirectionSrc}
-              alt="Enchante"
-              className="h-[22px] w-auto max-w-[120px] object-contain object-left brightness-0 invert opacity-90"
-            />
-          </div>
+        <div className="relative mt-1 shrink-0">
+          <OpenClawBrandCenter />
         </div>
 
-        <label className="border-glass-border flex w-full cursor-pointer select-text items-start gap-3 rounded-xl border bg-white/[0.03] px-4 py-3 text-left text-xs leading-snug text-text-muted transition-colors hover:border-white/15 hover:bg-white/[0.05]">
+        <p className="relative max-w-sm text-xs leading-snug text-text-muted sm:text-[13px]">{t('welcome.policyHint')}</p>
+
+        <div className="border-glass-border relative w-full min-h-[120px] max-h-[min(220px,40vh)] flex-1 overflow-y-auto rounded-xl border bg-white/[0.04] px-3 py-3 text-left sm:min-h-[140px] sm:px-4">
+          <WelcomePolicyBody />
+        </div>
+
+        <label className="border-glass-border relative flex w-full cursor-pointer select-text items-start gap-3 rounded-xl border bg-white/[0.03] px-3 py-3 text-left text-[11px] leading-snug text-text-muted transition-colors hover:border-white/15 hover:bg-white/[0.05] sm:px-4 sm:text-xs">
           <input
             type="checkbox"
             checked={termsAccepted}
@@ -75,7 +69,7 @@ export default function WelcomeStep({ onNext }: { onNext: () => void }): React.J
         <Button
           variant="primary"
           size="lg"
-          className="relative z-30 w-full min-w-[200px] sm:w-auto"
+          className="relative z-30 mt-auto w-full min-w-[200px] shrink-0 sm:w-auto"
           disabled={!termsAccepted}
           onClick={onNext}
         >

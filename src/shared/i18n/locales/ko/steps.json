@@ -6,8 +6,7 @@
   "welcome": {
     "title": "나만의 AI 에이전트, 클릭 한 번으로",
     "desc": "OpenClaw를 쉽고 빠르게 설치하고\n텔레그램으로 AI와 대화하세요",
-    "installingTitle": "OpenClaw 설치 중",
-    "customizedBy": "맞춤 제공",
+    "policyHint": "아래 내용을 읽어 주세요. 약관에 동의할 때까지 「시작하기」는 비활성화됩니다.",
     "termsAgree": "<terms>서비스 약관</terms> 및 <privacy>개인정보 처리방침</privacy>을 읽었으며 이에 동의합니다.",
     "start": "시작하기",
     "language": "언어"

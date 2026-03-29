@@ -6,8 +6,7 @@
   "welcome": {
     "title": "Your Own AI Agent, One Click Away",
     "desc": "Install OpenClaw quickly and easily,\nthen chat with AI on Telegram",
-    "installingTitle": "Installing OpenClaw",
-    "customizedBy": "Customized by",
+    "policyHint": "Please read the information below. Get Started stays disabled until you accept the terms.",
     "termsAgree": "I have read and agree to the <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>.",
     "start": "Get Started",
     "language": "Language"

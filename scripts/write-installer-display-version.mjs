@@ -1,7 +1,4 @@
-/**
- * Writes NSIS !define for installer branding so patch segment "01" is preserved
- * (some Windows tooling normalizes 1.1.01 → 1.1.1; branding uses raw package.json).
- */
+/** Writes NSIS !define for installer branding from root package.json `version` (semver x.y.z). */
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'

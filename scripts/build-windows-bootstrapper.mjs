@@ -10,7 +10,7 @@
  *
  * From repo root: npm run build:win-setup
  */
-import { copyFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
@@ -24,8 +24,49 @@ const payloadZip = join(payloadDir, 'openclaw-app.zip')
 const buildDir = join(bootstrapDir, 'build')
 const manifestPath = join(buildDir, 'install-manifest.json')
 
+function readRootPackageVersion() {
+  try {
+    const raw = readFileSync(join(root, 'package.json'), 'utf8')
+    const v = JSON.parse(raw)?.version
+    return typeof v === 'string' && v.trim() ? v.trim() : null
+  } catch {
+    return null
+  }
+}
+
+/** Tag v1.1.02 on this repo ships OpenClaw-1.1.2-win.zip; OpenClaw-1.1.02-win.zip is a common mistaken URL (404). */
+function normalizeAppZipUrl(url) {
+  try {
+    const u = new URL(url)
+    if (u.hostname !== 'github.com') return url
+    const parts = u.pathname.split('/').filter(Boolean)
+    const d = parts.indexOf('download')
+    if (d < 0 || parts.length < d + 3) return url
+    const tag = parts[d + 1]
+    const file = parts[d + 2]
+    if (
+      parts[0] === 'WalnutThinh' &&
+      parts[1] === 'OpenClaw' &&
+      tag === 'v1.1.02' &&
+      file === 'OpenClaw-1.1.02-win.zip'
+    ) {
+      parts[d + 2] = 'OpenClaw-1.1.2-win.zip'
+      u.pathname = `/${parts.join('/')}`
+      return u.toString()
+    }
+  } catch {
+    /* ignore */
+  }
+  return url
+}
+
 function findWinAppZip() {
   if (!existsSync(distDir)) return null
+  const pkgVersion = readRootPackageVersion()
+  if (pkgVersion) {
+    const exact = join(distDir, `OpenClaw-${pkgVersion}-win.zip`)
+    if (existsSync(exact)) return exact
+  }
   const files = readdirSync(distDir).filter((f) => {
     if (!f.endsWith('.zip')) return false
     if (/^OPENCLAW-setup/i.test(f)) return false
@@ -57,11 +98,51 @@ function ensureAppZip() {
 
 function writeManifest(zipPath) {
   const zipName = basename(zipPath)
+  const pkgVersion = readRootPackageVersion()
+  const expectedZip = pkgVersion ? `OpenClaw-${pkgVersion}-win.zip` : null
   const fullOverride = (process.env.OPENCLAW_APP_ZIP_URL ?? '').trim()
-  const appZipUrl = fullOverride || (() => {
+  const standardWinZip = /-win\.zip$/i.test(zipName) && !/win32-x64/i.test(zipName)
+  if (
+    !fullOverride &&
+    expectedZip &&
+    standardWinZip &&
+    zipName !== expectedZip
+  ) {
+    console.error(
+      `[build-windows-bootstrapper] dist has "${zipName}" but package.json version expects "${expectedZip}". ` +
+        `Remove stale zips from dist/ or run npm run build:win-app-zip. ` +
+        `Or set OPENCLAW_APP_ZIP_URL to the exact hosted asset URL (e.g. GitHub tag vs filename can differ).`
+    )
+    process.exit(1)
+  }
+  if (expectedZip && zipName !== expectedZip && fullOverride) {
+    console.warn(
+      `[build-windows-bootstrapper] Zip basename "${zipName}" does not match package.json (expected "${expectedZip}"); manifest URL comes from OPENCLAW_APP_ZIP_URL.`
+    )
+  }
+  let appZipUrl = fullOverride || (() => {
     const base = (process.env.OPENCLAW_APP_ZIP_BASE_URL ?? 'https://enchante.cloud/downloads').replace(/\/$/, '')
     return `${base}/${encodeURIComponent(zipName)}`
   })()
+  const normalizedUrl = normalizeAppZipUrl(appZipUrl)
+  if (normalizedUrl !== appZipUrl) {
+    console.warn('[build-windows-bootstrapper] Fixed appZipUrl (asset on GitHub is OpenClaw-1.1.2-win.zip, not ...1.1.02...):')
+    console.warn('  ', normalizedUrl)
+    appZipUrl = normalizedUrl
+  }
+  if (fullOverride && expectedZip) {
+    try {
+      const u = new URL(fullOverride)
+      const last = decodeURIComponent(u.pathname.split('/').pop() ?? '')
+      if (last && last !== expectedZip && /\.zip$/i.test(last)) {
+        console.warn(
+          `[build-windows-bootstrapper] OPENCLAW_APP_ZIP_URL ends with "${last}" but package.json expects asset "${expectedZip}" — GitHub release asset name may 404.`
+        )
+      }
+    } catch {
+      /* ignore invalid URL */
+    }
+  }
   mkdirSync(buildDir, { recursive: true })
   writeFileSync(manifestPath, JSON.stringify({ appZipUrl }, null, 2) + '\n', 'utf8')
   console.log('[build-windows-bootstrapper] Wrote', manifestPath)

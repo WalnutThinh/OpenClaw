@@ -21,6 +21,8 @@ extraResources:
       - '**/*'
 win:
   icon: build/icon.ico
+  # Matches package.json semver (e.g. 1.1.2 → OpenClaw-1.1.2-win.zip). Use x.y.z, not x.y.0z.
+  artifactName: ${productName}-${version}-win.${ext}
   executableName: OpenClaw
   # Shown in .exe Properties / Version; firewall “Publisher” uses Authenticode when you code-sign.
   legalTrademarks: Enchante Direction

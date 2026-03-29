@@ -6,8 +6,7 @@
   "welcome": {
     "title": "专属 AI 智能体，一键搞定",
     "desc": "轻松快速安装 OpenClaw\n通过 Telegram 与 AI 对话",
-    "installingTitle": "正在安装 OpenClaw",
-    "customizedBy": "定制方",
+    "policyHint": "请先阅读以下内容。勾选同意条款后，「开始」按钮才会启用。",
     "termsAgree": "我已阅读并同意 <terms>服务条款</terms> 和 <privacy>隐私政策</privacy>。",
     "start": "开始",
     "language": "语言"

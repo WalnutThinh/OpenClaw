@@ -6,8 +6,7 @@
   "welcome": {
     "title": "自分だけのAIエージェントを、ワンクリックで",
     "desc": "OpenClawを簡単・スピーディにインストールして\nTelegramでAIと会話しましょう",
-    "installingTitle": "OpenClaw をインストールしています",
-    "customizedBy": "カスタマイズ提供",
+    "policyHint": "以下をお読みください。同意にチェックを入れるまで「開始する」は押せません。",
     "termsAgree": "<terms>利用規約</terms>および<privacy>プライバシーポリシー</privacy>を読み、同意します。",
     "start": "開始する",
     "language": "言語"
