@@ -56,7 +56,7 @@ Packaging (local):
 
 ```bash
 npm run build:mac-local
-npm run build:win-local   # produces dist/OPENCLAW-setup.exe (see electron-builder.yml)
+npm run build:win-local   # small OPENCLAW-setup.exe + OpenClaw-*-win.zip; installer downloads zip from manifest URL at run time
 ```
 
 > **Installer path**: Do not install the packaged app into your **source tree** — the uninstaller can delete that folder. Use a separate directory (e.g. `C:\Program Files\...` or `D:\Apps\...`).

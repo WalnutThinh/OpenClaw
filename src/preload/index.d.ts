@@ -144,9 +144,21 @@ interface ElectronAPI {
   }
   wsl: {
     check: () => Promise<WslState>
+    systemDriveDiskHint: () => Promise<{
+      supported: boolean
+      checkPath: string
+      driveLabel: string
+      freeBytes: number | null
+      recommendedMinBytes: number
+      meetsRecommendation: boolean | null
+    }>
+    diagnose: () => Promise<{ state: WslState; lines: string[] }>
     install: (
       prevState?: WslState
     ) => Promise<{ success: boolean; needsReboot?: boolean; state?: WslState; error?: string }>
+    openFeatures: () => Promise<{ success: boolean; error?: string }>
+    openStoreUbuntu: () => Promise<{ success: boolean; error?: string }>
+    openWindowsUpdate: () => Promise<{ success: boolean; error?: string }>
   }
   wizard: {
     saveState: (state: WizardPersistedState) => Promise<{ success: boolean }>

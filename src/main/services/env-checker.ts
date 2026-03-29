@@ -14,7 +14,8 @@ import {
   getResolvedOllamaModelsWslPath
 } from './ollama-models-path'
 import { buildWslShellPrefix, checkWslState, runInWsl, type WslState } from './wsl-utils'
-import { APPROVED_OPENCLAW_VERSION } from './openclaw-release'
+import { getApprovedOpenclawVersion } from './openclaw-release'
+import { WSL_SYSTEM_DRIVE_RECOMMENDED_FREE_BYTES } from '../../shared/wsl-windows-disk'
 
 export interface EnvCheckResult {
   os: 'macos' | 'windows' | 'linux'
@@ -154,6 +155,40 @@ const getHostFreeDiskBytesAt = async (targetPath: string): Promise<{ bytes: numb
   }
 }
 
+/** Free space on the Windows system drive (where WSL/Ubuntu vhdx usually lives). */
+export const getWslWindowsSystemDriveDiskHint = async (): Promise<{
+  supported: boolean
+  checkPath: string
+  driveLabel: string
+  freeBytes: number | null
+  recommendedMinBytes: number
+  meetsRecommendation: boolean | null
+}> => {
+  if (platform() !== 'win32') {
+    return {
+      supported: false,
+      checkPath: '',
+      driveLabel: '',
+      freeBytes: null,
+      recommendedMinBytes: WSL_SYSTEM_DRIVE_RECOMMENDED_FREE_BYTES,
+      meetsRecommendation: null
+    }
+  }
+  const driveLabel = (process.env.SystemDrive ?? 'C:').trim()
+  const root = driveLabel.endsWith('\\') ? driveLabel : `${driveLabel}\\`
+  const { bytes: freeBytes } = await getHostFreeDiskBytesAt(root)
+  const meetsRecommendation =
+    freeBytes === null ? null : freeBytes >= WSL_SYSTEM_DRIVE_RECOMMENDED_FREE_BYTES
+  return {
+    supported: true,
+    checkPath: root,
+    driveLabel,
+    freeBytes,
+    recommendedMinBytes: WSL_SYSTEM_DRIVE_RECOMMENDED_FREE_BYTES,
+    meetsRecommendation
+  }
+}
+
 /** Before Config: ensure the Ollama models drive has room for pull + headroom. */
 export const checkOllamaWizardDiskSpace = async (
   modelId?: string
@@ -256,7 +291,7 @@ export const checkOpenclawUpdate = async (): Promise<OpenclawUpdateInfo> => {
     }
   }
 
-  const getLatestVersion = async (): Promise<string | null> => APPROVED_OPENCLAW_VERSION
+  const getLatestVersion = async (): Promise<string | null> => getApprovedOpenclawVersion()
 
   const [currentVersion, latestVersion] = await Promise.all([
     getCurrentVersion(),
@@ -322,7 +357,7 @@ export const checkEnvironment = async (): Promise<EnvCheckResult> => {
     pythonVersionOk = py.versionOk
   }
 
-  const openclawLatestVersion: string | null = APPROVED_OPENCLAW_VERSION
+  const openclawLatestVersion: string | null = await getApprovedOpenclawVersion()
   const ollamaPreflight = await buildOllamaPreflight(os, wslState)
 
   return {

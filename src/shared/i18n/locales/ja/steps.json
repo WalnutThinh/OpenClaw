@@ -6,6 +6,9 @@
   "welcome": {
     "title": "自分だけのAIエージェントを、ワンクリックで",
     "desc": "OpenClawを簡単・スピーディにインストールして\nTelegramでAIと会話しましょう",
+    "installingTitle": "OpenClaw をインストールしています",
+    "customizedBy": "カスタマイズ提供",
+    "termsAgree": "<terms>利用規約</terms>および<privacy>プライバシーポリシー</privacy>を読み、同意します。",
     "start": "開始する",
     "language": "言語"
   },
@@ -59,7 +62,12 @@
     "wslFailed": "WSLのインストールに失敗しました",
     "wslError": "WSLのインストール中にエラーが発生しました",
     "ubuntuFailed": "Ubuntuのインストールに失敗しました",
-    "ubuntuError": "Ubuntuのインストール中にエラーが発生しました"
+    "ubuntuError": "Ubuntuのインストール中にエラーが発生しました",
+    "diskHintTitle": "システムドライブの空き容量（WSLに必要）",
+    "diskHintBody": "Ubuntu/WSL は Windows のユーザープロファイル下に大きな仮想ディスクを置き、多くの場合 {{drive}} です。設定 > ストレージ の「新しいアプリを保存する場所」とは別です。インストール前に、WSL・Windows Update・伸び代のため {{drive}} に約 {{recommendedGiB}} GiB の空きを確保してください。大きな AI モデルは後でさらに容量が必要です（モデル手順を参照）。",
+    "diskHintFreeRow": "現在の空き: 約 {{freeGiB}} GiB（{{drive}}）",
+    "diskHintFreeUnknown": "{{drive}} の空き容量を読み取れませんでした。",
+    "diskHintLow": "空き容量が少ないです。{{drive}} には少なくとも {{recommendedGiB}} GiB あることを推奨します。ごみ箱を空にする、アプリのアンインストール、ディスク クリーンアップを試してから続行してください。"
   },
   "install": {
     "done": "インストール完了!",

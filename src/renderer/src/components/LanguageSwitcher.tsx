@@ -32,7 +32,7 @@ export default function LanguageSwitcher(): React.JSX.Element {
     <select
       value={resolved}
       onChange={(e) => handleChange(e.target.value)}
-      className="bg-bg-card border border-glass-border rounded-lg px-2 py-1 text-xs text-text-muted outline-none cursor-pointer hover:border-primary/40 transition-colors"
+      className="cursor-pointer rounded-lg border border-glass-border bg-bg-card px-2 py-1 text-xs text-text-muted outline-none transition-colors hover:border-primary/40"
     >
       {languages.map((lang) => (
         <option key={lang.code} value={lang.code}>

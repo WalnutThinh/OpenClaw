@@ -1,13 +1,13 @@
 /**
- * Copies dist/OPENCLAW-setup.{exe,zip} into enchante.cloud/public/downloads/
+ * Copies OPENCLAW-setup.{exe,zip} and OpenClaw-*-win.zip (app package) from dist/ into enchante.cloud/public/downloads/
  * so the static site serves the installer at /downloads/OPENCLAW-setup.exe
  *
  * From openclaw-enchante root: npm run sync-to-enchante-site
  *
  * Override enchante repo root: ENCHANTE_CLOUD_ROOT=D:\path\to\enchante.cloud
  */
-import { copyFileSync, existsSync, mkdirSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { copyFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs'
+import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
 
@@ -19,6 +19,31 @@ const enchanteRoot = (process.env.ENCHANTE_CLOUD_ROOT ?? '').trim() || defaultEn
 const destDir = join(enchanteRoot, 'public', 'downloads')
 
 const artifacts = ['OPENCLAW-setup.exe', 'OPENCLAW-setup.zip']
+
+function findDistAppZip() {
+  if (!existsSync(join(root, 'dist'))) return null
+  const files = readdirSync(join(root, 'dist')).filter((f) => {
+    if (!f.endsWith('.zip')) return false
+    if (/^OPENCLAW-setup/i.test(f)) return false
+    if (/win32-x64/i.test(f)) return true
+    if (/[.-]win\.zip$/i.test(f)) return true
+    return false
+  })
+  if (files.length === 0) return null
+  files.sort()
+  return join(root, 'dist', files[files.length - 1])
+}
+
+function resolveInstallerExe() {
+  const candidates = [
+    join(root, 'dist', 'installer', 'OPENCLAW-setup.exe'),
+    join(root, 'dist', 'OPENCLAW-setup.exe')
+  ]
+  for (const p of candidates) {
+    if (existsSync(p)) return p
+  }
+  return null
+}
 
 function assertSignedWindowsInstaller(pathToExe) {
   if (process.platform !== 'win32') {
@@ -66,9 +91,10 @@ function main() {
   mkdirSync(destDir, { recursive: true })
   let copied = 0
   for (const name of artifacts) {
-    const src = join(root, 'dist', name)
-    if (!existsSync(src)) {
-      console.warn('[sync-installer-to-enchante-site] skip (missing):', src)
+    const src =
+      name === 'OPENCLAW-setup.exe' ? resolveInstallerExe() : join(root, 'dist', name)
+    if (!src || !existsSync(src)) {
+      console.warn('[sync-installer-to-enchante-site] skip (missing):', src ?? join(root, 'dist', name))
       continue
     }
     if (name.toLowerCase().endsWith('.exe')) {
@@ -79,6 +105,20 @@ function main() {
     console.log('[sync-installer-to-enchante-site] copied', name, '→', dest)
     copied += 1
   }
+
+  const appZip = findDistAppZip()
+  if (appZip) {
+    const zipName = basename(appZip)
+    const dest = join(destDir, zipName)
+    copyFileSync(appZip, dest)
+    console.log('[sync-installer-to-enchante-site] copied', zipName, '→', dest, '(app package for download installer)')
+    copied += 1
+  } else {
+    console.warn(
+      '[sync-installer-to-enchante-site] No OpenClaw-*-win.zip in dist/ — download-based OPENCLAW-setup needs this file at the manifest URL.'
+    )
+  }
+
   if (copied === 0) {
     console.error('[sync-installer-to-enchante-site] no artifacts found. Run: npm run build:win-local')
     process.exit(1)

@@ -158,7 +158,7 @@ Chỉ xuất hiện khi môi trường Windows và WSL chưa ở trạng thái `
 
 ## Footer toàn app (mọi màn có layout đầy đủ)
 
-Trong `App.tsx`: version góc trái (từ `electronAPI.version()`, fallback `1.1.01`), dòng “Customized by” + logo Enchante giữa; dev có nút `[skip→done]`.
+Trong `App.tsx`: version góc trái (từ `electronAPI.version()`, fallback `1.1.02` (khớp `package.json` hiện tại)), dòng “Customized by” + logo Enchante giữa; dev có nút `[skip→done]`.
 
 ---
 

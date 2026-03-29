@@ -6,6 +6,9 @@
   "welcome": {
     "title": "AI Agent của riêng bạn, chỉ một cú nhấp",
     "desc": "Cài OpenClaw nhanh và dễ dàng,\nsau đó trò chuyện với AI trên Telegram",
+    "installingTitle": "Đang cài đặt OpenClaw",
+    "customizedBy": "Tùy chỉnh bởi",
+    "termsAgree": "Tôi đã đọc và đồng ý với <terms>Điều khoản dịch vụ</terms> và <privacy>Chính sách quyền riêng tư</privacy>.",
     "start": "Bắt đầu",
     "language": "Ngôn ngữ"
   },
@@ -59,7 +62,12 @@
     "wslFailed": "Cài WSL thất bại",
     "wslError": "Lỗi khi cài WSL",
     "ubuntuFailed": "Cài Ubuntu thất bại",
-    "ubuntuError": "Lỗi khi cài Ubuntu"
+    "ubuntuError": "Lỗi khi cài Ubuntu",
+    "diskHintTitle": "Dung lượng trống ổ hệ thống (cần cho WSL)",
+    "diskHintBody": "Ubuntu/WSL lưu ổ ảo lớn trong hồ sơ người dùng Windows, thường là {{drive}} — không theo mục “Ứng dụng mới” trên ổ D/E trong Cài đặt > Lưu trữ. Trước khi cài, hãy giải phóng khoảng {{recommendedGiB}} GiB trên {{drive}} cho WSL, bản cập nhật Windows và chỗ phình dần. Model AI lớn cần thêm dung lượng ở bước Model.",
+    "diskHintFreeRow": "Hiện trống: khoảng {{freeGiB}} GiB trên {{drive}}",
+    "diskHintFreeUnknown": "Không đọc được dung lượng trống của {{drive}}.",
+    "diskHintLow": "Ổ đang thiếu chỗ: nên có ít nhất {{recommendedGiB}} GiB trống trên {{drive}}. Thử dọn Thùng rác, gỡ app nặng không dùng, hoặc Dọn dĩa (Disk Cleanup), rồi thử lại."
   },
   "install": {
     "done": "Cài đặt xong!",

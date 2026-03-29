@@ -129,7 +129,7 @@ Exact names are in preload typings.
 
 ## 10. Build outputs
 
-- **Windows:** `dist/OPENCLAW-setup.exe` (artifact name in `electron-builder.yml`)
+- **Windows:** `dist/installer/OPENCLAW-setup.exe` (bootstrapper) + `dist/OpenClaw-*-win.zip` hosted at `install-manifest.json` `appZipUrl`; setup downloads zip then extracts locally. Distribution rules for agents: **[AGENTS-WINDOWS-DISTRIBUTION.md](AGENTS-WINDOWS-DISTRIBUTION.md)**.
 - **macOS:** DMG name per `electron-builder.yml` / scripts  
 - **Do not** build/install into the git checkout folder on Windows.
 

@@ -2,7 +2,7 @@
 
 ## Bị kẹt lâu ở: `output file is locked for writing (maybe by virus scanner) => waiting for unlock...`
 
-Đây là hành vi của **electron-builder**: nó **chờ** ghi xong file cài đặt (mặc định `dist/OPENCLAW-setup.exe`). Trên Windows, **Windows Defender** (hoặc antivirus khác) thường **mở/quét** file `.exe` vừa tạo → file bị **khóa** vài giây đến vài phút, đôi khi rất lâu.
+Đây là hành vi của **electron-builder**: nó **chờ** ghi xong file cài đặt (`dist/installer/OPENCLAW-setup.exe` — bootstrapper build tách khỏi `dist/` gốc để tránh xung đột với bản zip app). Trên Windows, **Windows Defender** (hoặc antivirus khác) thường **mở/quét** file `.exe` vừa tạo → file bị **khóa** vài giây đến vài phút, đôi khi rất lâu.
 
 ### Làm gì ngay
 
@@ -11,7 +11,7 @@
    - App chạy từ `dist/win-unpacked/OpenClaw.exe`
    - Trình cài `OPENCLAW-setup.exe` nếu đang mở
    - Cửa sổ Explorer đang mở thư mục `dist` (hoặc tắt **Preview pane** nếu đang bật)
-3. **Xóa** (nếu xóa được) `dist/OPENCLAW-setup.exe` rồi build lại. Nếu không xóa được → có process đang giữ file; khởi động lại máy hoặc dùng Task Manager kết thúc process liên quan.
+3. **Xóa** (nếu xóa được) `dist/installer/OPENCLAW-setup.exe` rồi build lại. Nếu không xóa được → có process đang giữ file; khởi động lại máy hoặc dùng Task Manager kết thúc process liên quan.
 4. **Thêm loại trừ** cho Defender (khuyến nghị):
    - *Cài đặt* → *Quyền riêng tư & bảo mật* → *Bảo mật Windows* → *Bảo vệ khỏi mối đe dọa & vi-rút* → *Cài đặt bảo vệ khỏi mối đe dọa* → *Loại trừ* → *Thêm loại trừ* → **Thư mục** → chọn thư mục dự án hoặc ít nhất `...\openclaw-enchante\dist`.
 5. Chạy lại: `npm run build:win-local`.
@@ -20,6 +20,18 @@
 
 - Đợi thêm **10–15 phút** một lần (sau khi đã loại trừ thư mục) — đôi khi chỉ chậm do quét lần đầu.
 - Tạm **tạm dừng bảo vệ theo thời gian thực** (chỉ khi bạn hiểu rủi ro, và ưu tiên đã thêm loại trừ thư mục).
+
+### Custom installer: **2 file** (nhỏ + gói app tải từ mạng)
+
+1. **`dist/installer/OPENCLAW-setup.exe`** — chỉ **Electron + UI cài đặt** (thường **~100–180 MB**), không nhúng app đầy đủ. Trong `resources` có **`install-manifest.json`** với `appZipUrl` trỏ tới file (2).
+2. **`dist/OpenClaw-*-win.zip`** (hoặc `*-win32-x64.zip`) — **toàn bộ app**; phải **đặt đúng URL** trong manifest (mặc định build script: `https://enchante.cloud/downloads/<tên-file-zip>`). `npm run sync-to-enchante-site` copy cả `.exe` và zip app vào `enchante.cloud/public/downloads/`.
+
+Luồng người dùng: chạy `.exe` → tải zip từ mạng → giải nén vào thư mục đã chọn. **Cần mạng** lúc cài (trừ bản dev có `payload/openclaw-app.zip`).
+
+- **Build:** `OPENCLAW_APP_ZIP_BASE_URL` / `OPENCLAW_APP_ZIP_URL` khi chạy `build-windows-bootstrapper.mjs` (xem script).
+- Giải nén nhiều file + Defender vẫn có thể làm bước **Extract** lâu; UI hiển thị tiến độ tải (nếu có `Content-Length`) và số mục khi giải nén.
+
+**Quy tắc phát hành (Pages + GitHub Releases, cho agent):** xem **[AGENTS-WINDOWS-DISTRIBUTION.md](AGENTS-WINDOWS-DISTRIBUTION.md)**.
 
 ### Cảnh báo khác trong log (bình thường)
 
@@ -34,7 +46,7 @@
 ### NSIS: chính sách, branding, sidebar
 
 - `npm install` chạy `scripts/patch-nsis-multiuser-ui.mjs` để **ẩn** dòng trạng thái kiểu “There is already a per-user installation… Will reinstall” trên trang chọn cài cho ai (template `multiUserUi.nsh` trong `app-builder-lib`).
-- `npm run build` chạy `prepare-installer-assets`: ghi `build/installer-display-version.nsh` từ `package.json` (giữ dạng **1.1.01** trên dòng branding) và tạo lại `build/installerSidebar.png` (164×314, logo OpenClaw + “Customized by Enchante Direction”).
+- `npm run build` chạy `prepare-installer-assets`: ghi `build/installer-display-version.nsh` từ `package.json` (giữ dạng **x.x.xx** trên dòng branding, theo `package.json`) và tạo lại `build/installerSidebar.png` (164×314, logo OpenClaw + “Customized by Enchante Direction”).
 - Trang **chính sách** (checkbox bắt buộc) nằm trong `build/installer.nsh` (`customPageAfterChangeDir`): **sau** trang chọn thư mục, **trước** bước giải nén. (Không đặt trang này làm “welcome” đầu tiên — MUI2 của electron-builder cần `MUI_PAGE_INIT` từ trang chế độ cài trước, nếu không trình cài có thể thoát im lặng.)
 - **Không** chạy `wsl` / `openclaw doctor --fix` trong `customInstall` của NSIS: lệnh đó dễ **chặn** bước cài rất lâu, thanh tiến trình MUI thường **đứng ~70%** trong lúc chờ → dễ hiểu nhầm là trình cài treo hoặc tự thoát. Bảo mật/sửa lỗi dùng **Fixer trong app** sau khi cài.
 - **Ghim taskbar / shortcut trỏ `OpenClaw-Enchante.exe`:** bản build cũ lấy tên exe từ package npm; hiện `electron-builder.yml` dùng `executableName: OpenClaw` → chỉ có `OpenClaw.exe`. `build/installer.nsh` trong `customInstall` tạo **hard link** `OpenClaw-Enchante.exe` trỏ cùng file với `OpenClaw.exe` trên **NTFS** (không nhân đôi dung lượng) để shortcut đã ghim còn mở được sau khi cài/cập nhật lại. Bản **ZIP** giải nén sang ổ không hỗ trợ hard link: bỏ ghim cũ, mở `OpenClaw.exe` rồi ghim lại.
@@ -75,10 +87,10 @@ Xem **[WINDOWS-INSTALL-DRIVES.md](WINDOWS-INSTALL-DRIVES.md)** — giải thích
 - Script `npm run sync-to-enchante-site` đã chặn upload file `.exe` nếu chữ ký không hợp lệ trên máy Windows.
 - Có thể chạy 1 lệnh để tải artifact đã ký từ GitHub Release rồi sync website:
   - `npm run sync-signed-to-enchante-site`
-  - Mặc định lấy release mới nhất; có thể chỉ định tag: `RELEASE_TAG=v1.1.01 npm run sync-signed-to-enchante-site`
+  - Mặc định lấy release mới nhất; có thể chỉ định tag: `RELEASE_TAG=v1.1.02 npm run sync-signed-to-enchante-site`
 - Nếu bạn publish qua AWS CLI / R2, dùng lệnh:
   - `S3_BUCKET=download S3_KEY=windows/OPENCLAW-setup.exe S3_ENDPOINT_URL=https://<account>.r2.cloudflarestorage.com npm run publish-signed-installer-s3`
-  - Script sẽ chặn upload nếu `dist/OPENCLAW-setup.exe` chưa có Authenticode `Valid`.
+  - Script sẽ chặn upload nếu `dist/installer/OPENCLAW-setup.exe` chưa có Authenticode `Valid`.
 - Luồng khuyến nghị:
   1. Build release qua CI/release pipeline có signing.
   2. Lấy artifact đã ký.

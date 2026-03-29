@@ -1,0 +1,23 @@
+# Custom Windows installer (no NSIS). Output under ../dist/installer/ avoids clobbering main app
+# dist/win-unpacked and reduces "file locked" waits when dist/OPENCLAW-setup.exe is scanned/running.
+appId: com.enchante.openclaw.setup
+productName: OpenClaw Setup
+directories:
+  output: ../dist/installer
+  buildResources: build
+files:
+  - out/**/*
+  - package.json
+# App payload is downloaded at install time (URL in install-manifest.json). See npm run build:win-setup.
+extraResources:
+  - from: build/install-manifest.json
+    to: install-manifest.json
+win:
+  executableName: OPENCLAW-setup
+  icon: build/icon.ico
+  target:
+    - target: portable
+      arch:
+        - x64
+  artifactName: OPENCLAW-setup.${ext}
+npmRebuild: false

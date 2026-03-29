@@ -1,12 +1,13 @@
 @import 'tailwindcss';
 
 @theme {
-  /* Pink → blue gradient accent (replaces orange) */
-  --color-primary: #ec4899;
-  --color-primary-hover: #3b82f6;
-  --color-primary-light: #f472b6;
-  --color-primary-glow: rgba(236, 72, 153, 0.35);
-  --color-bg: #000000;
+  /* Brand gradient: blush → deep green */
+  --color-primary: #e2b8b9;
+  --color-primary-hover: #105a41;
+  --color-primary-light: #efd4d5;
+  --color-primary-glow: rgba(16, 90, 65, 0.38);
+  /* Deep base; aurora-bg adds brand wash */
+  --color-bg: #030403;
   --color-bg-card: rgba(255, 255, 255, 0.04);
   --color-bg-card-hover: rgba(255, 255, 255, 0.07);
   --color-bg-input: rgba(255, 255, 255, 0.06);
@@ -62,13 +63,18 @@ select {
   -webkit-app-region: drag;
 }
 
-/* Pure black base — no orange aurora */
+/* Brand ambient: blush + forest glow on dark base */
 .aurora-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
   overflow: hidden;
-  background: #000000;
+  background-color: #030403;
+  background-image:
+    radial-gradient(ellipse 95% 70% at 8% 14%, rgba(226, 184, 185, 0.24) 0%, transparent 58%),
+    radial-gradient(ellipse 85% 65% at 92% 86%, rgba(16, 90, 65, 0.34) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 45% at 72% 22%, rgba(16, 90, 65, 0.08) 0%, transparent 60%),
+    linear-gradient(158deg, #020202 0%, #061510 40%, #030303 100%);
   /* Must not capture clicks — decorative layer only */
   pointer-events: none;
 }
@@ -85,7 +91,7 @@ select {
 .twinkle-dot {
   position: absolute;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(236, 72, 153, 0.85), rgba(59, 130, 246, 0.75));
+  background: linear-gradient(135deg, rgba(226, 184, 185, 0.85), rgba(16, 90, 65, 0.78));
   opacity: 0.15;
   animation: twinkle ease-in-out infinite;
 }

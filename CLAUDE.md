@@ -104,7 +104,7 @@ Windows에서는 WSL(Windows Subsystem for Linux) Ubuntu 내에서 Node.js/OpenC
 
 바이너리 빌드·업로드는 **조직의 Git 호스팅 + CI 정책**에 따름. `.github/workflows/release.yml` 참고.
 
-- Windows 산출물: `dist/OPENCLAW-setup.exe` (`electron-builder.yml`의 `artifactName`)
+- Windows: `dist/installer/OPENCLAW-setup.exe` (nhỏ) + zip app tải từ `install-manifest.json` `appZipUrl` khi cài. Phát hành (Pages + GitHub Releases, agent): **`docs/AGENTS-WINDOWS-DISTRIBUTION.md`**.
 - macOS: `electron-builder.yml` / 스크립트에 정의된 DMG 이름
 
 **시크릿** (CI): macOS 서명·공증용 `CSC_*`, `APPLE_*` 등

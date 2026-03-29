@@ -26,33 +26,11 @@ win:
   legalTrademarks: Enchante Direction
   forceCodeSigning: false
   requestedExecutionLevel: asInvoker
-  # NSIS .exe needs lots of free space on the drive that holds %TEMP% (usually C:) while unpacking.
-  # If C: is almost full, use the .zip artifact: extract straight to D:\ with 7-Zip / Explorer (see docs).
+  # Ship full app as .zip; custom OPENCLAW-setup.exe is built separately (setup-bootstrapper/).
   target:
-    - target: nsis
-      arch:
-        - x64
     - target: zip
       arch:
         - x64
-nsis:
-  # Standard MUI license page (stable with UAC / inner elevated installer).
-  # File must be UTF-16 LE + BOM (see scripts/encode-installer-license-nsis.mjs); UTF-8 shows mojibake for Vietnamese.
-  license: build/installer-license.txt
-  artifactName: OPENCLAW-setup.${ext}
-  shortcutName: ${productName}
-  uninstallDisplayName: ${productName}
-  # Assisted installer: finish page shows “Run OpenClaw” checkbox (MUI). User must tick it to launch after Finish.
-  runAfterFinish: true
-  createDesktopShortcut: always
-  oneClick: false
-  allowToChangeInstallationDirectory: true
-  allowElevation: true
-  deleteAppDataOnUninstall: false
-  include: build/installer.nsh
-  installerSidebar: build/installerSidebar.png
-  uninstallerSidebar: build/installerSidebar.png
-  installerHeader: build/installerHeader.png
 mac:
   icon: build/icon.icns
   hardenedRuntime: true

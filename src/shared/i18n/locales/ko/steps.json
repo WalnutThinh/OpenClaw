@@ -6,6 +6,9 @@
   "welcome": {
     "title": "나만의 AI 에이전트, 클릭 한 번으로",
     "desc": "OpenClaw를 쉽고 빠르게 설치하고\n텔레그램으로 AI와 대화하세요",
+    "installingTitle": "OpenClaw 설치 중",
+    "customizedBy": "맞춤 제공",
+    "termsAgree": "<terms>서비스 약관</terms> 및 <privacy>개인정보 처리방침</privacy>을 읽었으며 이에 동의합니다.",
     "start": "시작하기",
     "language": "언어"
   },
@@ -59,7 +62,12 @@
     "wslFailed": "WSL 설치에 실패했습니다",
     "wslError": "WSL 설치 중 오류가 발생했습니다",
     "ubuntuFailed": "Ubuntu 설치에 실패했습니다",
-    "ubuntuError": "Ubuntu 설치 중 오류가 발생했습니다"
+    "ubuntuError": "Ubuntu 설치 중 오류가 발생했습니다",
+    "diskHintTitle": "시스템 드라이브 여유 공간(WSL 필요)",
+    "diskHintBody": "Ubuntu/WSL은 Windows 사용자 프로필 아래에 큰 가상 디스크를 두며 보통 {{drive}} 입니다. 설정 > 저장소의 ‘새 앱 저장 위치’와는 별개입니다. 설치 전 {{drive}}에 WSL, Windows 업데이트, 여유를 위해 약 {{recommendedGiB}} GiB를 비우세요. 큰 AI 모델은 이후 더 필요합니다(모델 단계 참고).",
+    "diskHintFreeRow": "현재 여유: 약 {{freeGiB}} GiB ({{drive}})",
+    "diskHintFreeUnknown": "{{drive}}의 여유 공간을 읽을 수 없습니다.",
+    "diskHintLow": "디스크 공간이 부족합니다. {{drive}}에 최소 {{recommendedGiB}} GiB 여유를 권장합니다. 휴지통 비우기, 큰 앱 제거, 디스크 정리 후 다시 시도하세요."
   },
   "install": {
     "done": "설치 완료!",

@@ -10,6 +10,11 @@ export type WslState =
   | 'not_initialized'
   | 'ready'
 
+export interface WslDiagnosticsResult {
+  state: WslState
+  lines: string[]
+}
+
 /** Progression order of WSL states (used for before/after comparison) */
 export const WSL_STATE_ORDER: readonly WslState[] = [
   'not_available',
@@ -104,6 +109,62 @@ export const checkWslState = async (): Promise<WslState> => {
     // --list failed → WSL installed but not yet initialized
     return 'not_installed'
   }
+}
+
+/**
+ * Human-readable diagnostics for support, without requiring the user to run terminal commands.
+ * Collects WSL status plus key optional-feature flags often blocking installation.
+ */
+export const diagnoseWslInstall = async (): Promise<WslDiagnosticsResult> => {
+  const lines: string[] = []
+  const push = (s: string): void => {
+    lines.push(s)
+  }
+
+  const safeRun = async (cmd: string, args: string[]): Promise<string | null> => {
+    try {
+      return await runCmd(cmd, args, 20000)
+    } catch {
+      return null
+    }
+  }
+
+  const state = await checkWslState()
+  push(`Detected state: ${state}`)
+
+  const whereWsl = await safeRun('where', ['wsl'])
+  push(`where wsl: ${whereWsl ? 'ok' : 'missing'}`)
+  if (whereWsl) push(whereWsl)
+
+  const status = await safeRun('wsl', ['--status'])
+  push('wsl --status:')
+  push(status ?? '(failed)')
+
+  const version = await safeRun('wsl', ['--version'])
+  push('wsl --version:')
+  push(version ?? '(failed / inbox WSL may not support this flag)')
+
+  const list = await safeRun('wsl', ['--list', '--verbose'])
+  push('wsl --list --verbose:')
+  push(list ?? '(failed)')
+
+  const vmFeature = await safeRun('dism.exe', [
+    '/online',
+    '/get-featureinfo',
+    '/featurename:VirtualMachinePlatform'
+  ])
+  push('Feature VirtualMachinePlatform:')
+  push(vmFeature ?? '(failed)')
+
+  const wslFeature = await safeRun('dism.exe', [
+    '/online',
+    '/get-featureinfo',
+    '/featurename:Microsoft-Windows-Subsystem-Linux'
+  ])
+  push('Feature Microsoft-Windows-Subsystem-Linux:')
+  push(wslFeature ?? '(failed)')
+
+  return { state, lines }
 }
 
 /** Run command via bash -lc inside WSL Ubuntu (auto-loads nvm PATH) */

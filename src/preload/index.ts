@@ -176,10 +176,28 @@ const electronAPI = {
     check: (): Promise<
       'not_available' | 'not_installed' | 'needs_reboot' | 'no_distro' | 'not_initialized' | 'ready'
     > => ipcRenderer.invoke('wsl:check'),
+    systemDriveDiskHint: (): Promise<{
+      supported: boolean
+      checkPath: string
+      driveLabel: string
+      freeBytes: number | null
+      recommendedMinBytes: number
+      meetsRecommendation: boolean | null
+    }> => ipcRenderer.invoke('wsl:system-drive-disk-hint'),
+    diagnose: (): Promise<{
+      state: 'not_available' | 'not_installed' | 'needs_reboot' | 'no_distro' | 'not_initialized' | 'ready'
+      lines: string[]
+    }> => ipcRenderer.invoke('wsl:diagnose'),
     install: (
       prevState?: string
     ): Promise<{ success: boolean; needsReboot?: boolean; state?: string; error?: string }> =>
-      ipcRenderer.invoke('wsl:install', prevState)
+      ipcRenderer.invoke('wsl:install', prevState),
+    openFeatures: (): Promise<{ success: boolean; error?: string }> =>
+      ipcRenderer.invoke('wsl:open-features'),
+    openStoreUbuntu: (): Promise<{ success: boolean; error?: string }> =>
+      ipcRenderer.invoke('wsl:open-store-ubuntu'),
+    openWindowsUpdate: (): Promise<{ success: boolean; error?: string }> =>
+      ipcRenderer.invoke('wsl:open-windows-update')
   },
   wizard: {
     saveState: (state: {

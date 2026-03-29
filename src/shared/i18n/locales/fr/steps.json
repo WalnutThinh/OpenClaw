@@ -6,6 +6,9 @@
   "welcome": {
     "title": "Votre agent IA, en un clic",
     "desc": "Installez OpenClaw simplement,\npuis discutez avec l’IA sur Telegram ou autre messagerie",
+    "installingTitle": "Installation d’OpenClaw",
+    "customizedBy": "Personnalisé par",
+    "termsAgree": "J’ai lu et j’accepte les <terms>Conditions d’utilisation</terms> et la <privacy>Politique de confidentialité</privacy>.",
     "start": "Commencer",
     "language": "Langue"
   },
@@ -59,7 +62,12 @@
     "wslFailed": "Échec de l’installation WSL",
     "wslError": "Une erreur s’est produite pendant l’installation WSL",
     "ubuntuFailed": "Échec de l’installation Ubuntu",
-    "ubuntuError": "Une erreur s’est produite pendant l’installation Ubuntu"
+    "ubuntuError": "Une erreur s’est produite pendant l’installation Ubuntu",
+    "diskHintTitle": "Espace libre sur le disque système (nécessaire pour WSL)",
+    "diskHintBody": "Ubuntu et WSL stockent un gros disque virtuel dans le profil Windows, en général sur {{drive}}. Ce n’est pas lié à Paramètres > Stockage > « Nouvelles applications » sur un autre disque. Avant d’installer, libérez environ {{recommendedGiB}} Gio sur {{drive}} pour WSL, les mises à jour Windows et de la marge. Les gros modèles IA demanderont plus d’espace plus tard (étape Modèle).",
+    "diskHintFreeRow": "Espace libre actuel : environ {{freeGiB}} Gio sur {{drive}}",
+    "diskHintFreeUnknown": "Impossible de lire l’espace libre pour {{drive}}.",
+    "diskHintLow": "Espace disque faible : nous recommandons au moins {{recommendedGiB}} Gio libres sur {{drive}}. Videz la Corbeille, désinstallez de grosses applications inutiles ou utilisez Nettoyage de disque, puis réessayez."
   },
   "install": {
     "done": "Installation terminée !",

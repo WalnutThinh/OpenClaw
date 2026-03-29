@@ -1,6 +1,6 @@
 const variants = {
   primary: [
-    'bg-gradient-to-r from-primary to-primary-hover text-white',
+    'bg-gradient-to-r from-primary to-primary-hover text-white [text-shadow:0_1px_2px_rgb(0_0_0/0.45)]',
     'shadow-lg shadow-primary-glow',
     'hover:shadow-xl hover:shadow-primary-glow hover:scale-[1.03] hover:brightness-110',
     'active:scale-[0.98]'

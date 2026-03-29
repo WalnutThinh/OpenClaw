@@ -1,0 +1,30 @@
+{
+  "name": "openclaw-setup-bootstrapper",
+  "version": "1.1.02",
+  "private": true,
+  "description": "Windows custom installer UI (replaces NSIS) — extracts bundled app zip to a chosen folder.",
+  "author": "Enchante Direction",
+  "main": "./out/main/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "pack": "npm run build && electron-builder --win --publish never"
+  },
+  "dependencies": {
+    "extract-zip": "^2.0.1"
+  },
+  "devDependencies": {
+    "@electron-toolkit/tsconfig": "^2.0.0",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "electron": "^39.2.6",
+    "electron-builder": "^26.0.12",
+    "electron-vite": "^5.0.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.6"
+  }
+}

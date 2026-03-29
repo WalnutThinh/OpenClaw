@@ -11,6 +11,7 @@ import { setupAutoUpdater, checkForUpdates } from './services/updater'
 import { startGateway } from './services/gateway'
 import { initI18nMain } from '../shared/i18n/main'
 import { getAppIconNativeImage } from './app-paths'
+import { readAppSettings, writeAppSettings } from './services/app-settings'
 
 /*
  * Windows: must call before `ready` or the shell may pin a generic taskbar icon.
@@ -148,6 +149,20 @@ app.whenReady().then(async () => {
   await initI18nMain(getSavedLocale())
   /* Re-apply after ready so @electron-toolkit/utils rules match (dev vs packaged). */
   electronApp.setAppUserModelId('com.enchante.openclaw')
+
+  // Windows packaged app: enable auto-start by default on first run.
+  if (process.platform === 'win32' && app.isPackaged) {
+    const settings = readAppSettings()
+    const initialized = settings.autoLaunchInitialized === true
+    if (!initialized) {
+      app.setLoginItemSettings({
+        openAtLogin: true,
+        openAsHidden: true,
+        args: ['--hidden']
+      })
+      writeAppSettings({ autoLaunchInitialized: true, autoLaunchEnabled: true })
+    }
+  }
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

@@ -82,9 +82,7 @@
   Delete "$TEMP\enchante_openclaw_fw_uninstall.bat"
 !macroend
 
-; Privacy / terms acknowledgement: use electron-builder `nsis.license` → MUI_PAGE_LICENSE
-; (see build/installer-license.txt). Custom nsDialogs page after directory was removed due to
-; install failures (~progress 80% / exit) correlated with UAC + MUI custom pages.
+; Terms / privacy: accepted in the Electron wizard (WelcomeStep), not in this NSIS .exe.
 
 ; Do NOT run WSL / openclaw from customInstall here: nsExec + wsl + doctor --fix can block for a long time
 ; and the MUI progress bar often stays ~70% while waiting — users think the installer crashed or "exited".

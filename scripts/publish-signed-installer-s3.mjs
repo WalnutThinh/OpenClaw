@@ -7,7 +7,7 @@
  * Optional env:
  *   S3_KEY=windows/OPENCLAW-setup.exe
  *   S3_ENDPOINT_URL=https://<account>.r2.cloudflarestorage.com
- *   INSTALLER_PATH=dist/OPENCLAW-setup.exe
+ *   INSTALLER_PATH=dist/installer/OPENCLAW-setup.exe
  */
 import { existsSync } from 'node:fs'
 import { dirname, isAbsolute, join } from 'node:path'
@@ -17,7 +17,7 @@ import { spawnSync } from 'node:child_process'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = join(__dirname, '..')
 
-const installerPathEnv = (process.env.INSTALLER_PATH ?? 'dist/OPENCLAW-setup.exe').trim()
+const installerPathEnv = (process.env.INSTALLER_PATH ?? 'dist/installer/OPENCLAW-setup.exe').trim()
 const installerPath = isAbsolute(installerPathEnv) ? installerPathEnv : join(root, installerPathEnv)
 const bucket = (process.env.S3_BUCKET ?? '').trim()
 const key = (process.env.S3_KEY ?? 'windows/OPENCLAW-setup.exe').trim()

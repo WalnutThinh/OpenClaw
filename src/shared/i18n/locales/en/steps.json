@@ -6,6 +6,9 @@
   "welcome": {
     "title": "Your Own AI Agent, One Click Away",
     "desc": "Install OpenClaw quickly and easily,\nthen chat with AI on Telegram",
+    "installingTitle": "Installing OpenClaw",
+    "customizedBy": "Customized by",
+    "termsAgree": "I have read and agree to the <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>.",
     "start": "Get Started",
     "language": "Language"
   },
@@ -55,11 +58,24 @@
     "ubuntuInitDesc": "Ubuntu is registered but needs initialization.",
     "ubuntuIniting": "Initializing Ubuntu...",
     "ubuntuInit": "Initialize Ubuntu",
+    "helpTitle": "Need help? Use guided Windows steps (no terminal needed).",
+    "openFeaturesBtn": "Open Windows Features",
+    "openStoreUbuntuBtn": "Open Ubuntu in Microsoft Store",
+    "openWindowsUpdateBtn": "Open Windows Update",
+    "runDiagnoseBtn": "Run quick diagnosis",
+    "diagnoseTitle": "WSL diagnosis details",
+    "copyDiagnoseBtn": "Copy report",
+    "diagnoseCopied": "Copied!",
     "wslReady": "WSL is ready. Proceeding to next step...",
     "wslFailed": "WSL installation failed",
     "wslError": "An error occurred during WSL installation",
     "ubuntuFailed": "Ubuntu installation failed",
-    "ubuntuError": "An error occurred during Ubuntu installation"
+    "ubuntuError": "An error occurred during Ubuntu installation",
+    "diskHintTitle": "Free space on your system drive (needed for WSL)",
+    "diskHintBody": "Ubuntu and WSL store a large virtual disk under your Windows user profile, usually on drive {{drive}}. That is separate from Settings > Storage > “New apps” on another drive. Before installing, free about {{recommendedGiB}} GiB on {{drive}} for WSL setup, Windows updates, and room to grow. Larger AI models need more space later (see the Model step).",
+    "diskHintFreeRow": "Free now: about {{freeGiB}} GiB on {{drive}}",
+    "diskHintFreeUnknown": "Could not read free space for {{drive}}.",
+    "diskHintLow": "Low disk space: we recommend at least {{recommendedGiB}} GiB free on {{drive}}. Try emptying Recycle Bin, removing large apps you do not need, or Disk Cleanup, then continue."
   },
   "install": {
     "done": "Installation Complete!",

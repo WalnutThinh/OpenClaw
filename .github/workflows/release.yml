@@ -44,7 +44,7 @@ jobs:
       - name: Verify Authenticode signature (must be signed)
         shell: powershell
         run: |
-          $sig = Get-AuthenticodeSignature -FilePath "dist/OPENCLAW-setup.exe"
+          $sig = Get-AuthenticodeSignature -FilePath "dist/installer/OPENCLAW-setup.exe"
           if ($null -eq $sig) {
             Write-Error "Missing Authenticode signature."
             exit 1
@@ -62,4 +62,4 @@ jobs:
       - name: Upload to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.event.release.tag_name }}" dist/OPENCLAW-setup.exe --clobber
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/installer/OPENCLAW-setup.exe --clobber

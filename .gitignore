@@ -1,6 +1,9 @@
 node_modules/
 dist/
 out/
+setup-bootstrapper/node_modules/
+setup-bootstrapper/out/
+setup-bootstrapper/payload/*.zip
 *.dmg
 *.exe
 *.AppImage

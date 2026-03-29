@@ -14,7 +14,7 @@ import {
   type WslState
 } from './wsl-utils'
 import { getPathEnv } from './path-utils'
-import { APPROVED_OPENCLAW_PACKAGE_SPEC } from './openclaw-release'
+import { getApprovedOpenclawPackageSpec } from './openclaw-release'
 import { t } from '../../shared/i18n/main'
 import { splitInstallProgressMessages } from '../../shared/install-log-format'
 import {
@@ -153,44 +153,84 @@ export const installWsl = async (
   log(t('installer.wslInstalling'))
   log(t('installer.wslAdminPrompt'))
 
+  // Auto-heal pass: enable required Windows features + refresh WSL runtime before install attempts.
+  // This keeps the flow no-terminal for non-technical users.
   try {
-    const psCommand = [
+    const healPs = [
       'try {',
-      "  $p = Start-Process -FilePath 'wsl' -ArgumentList '--install -d Ubuntu --no-launch' -Verb RunAs -Wait -PassThru;",
+      "  $args = '/c dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart && dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart && wsl --update --web-download';",
+      "  $p = Start-Process -FilePath 'cmd.exe' -ArgumentList $args -Verb RunAs -Wait -PassThru;",
       '  exit $p.ExitCode',
       '} catch {',
-      '  Write-Output $_.Exception.Message;',
       '  exit 1',
       '}'
     ].join(' ')
-    await runWithLog('powershell', ['-NoProfile', '-Command', psCommand], log)
-  } catch (err) {
-    const errMsg = err instanceof Error ? err.message : ''
-    const errLines = ((err as RunError).lines ?? []).join('\n')
-    const lower = (errMsg + '\n' + errLines).toLowerCase()
+    await runWithLog('powershell', ['-NoProfile', '-Command', healPs], log)
+  } catch {
+    // Best-effort only — continue with install recipes below.
+  }
 
-    // Definite failures — throw immediately
-    if (
-      lower.includes('canceled') ||
-      lower.includes('cancelled') ||
-      lower.includes('elevation') ||
-      lower.includes('access denied') ||
-      lower.includes('permission')
-    ) {
-      throw new Error(t('installer.adminRequired'))
+  /**
+   * Try multiple elevated install recipes so users are not forced to open terminal manually.
+   * Some Windows builds accept only a subset of arguments.
+   */
+  const installRecipes = [
+    '--install -d Ubuntu --no-launch',
+    '--install --no-distribution',
+    '--install -d Ubuntu --web-download --no-launch',
+    '--install -d Ubuntu'
+  ]
+  let hadAdminAttemptFailure = false
+
+  for (let i = 0; i < installRecipes.length; i++) {
+    const recipe = installRecipes[i]!
+    try {
+      if (i > 0) log(t('installer.wslRetryingAnotherMethod'))
+      const psCommand = [
+        'try {',
+        `  $p = Start-Process -FilePath 'wsl' -ArgumentList '${recipe}' -Verb RunAs -Wait -PassThru;`,
+        '  exit $p.ExitCode',
+        '} catch {',
+        '  Write-Output $_.Exception.Message;',
+        '  exit 1',
+        '}'
+      ].join(' ')
+      await runWithLog('powershell', ['-NoProfile', '-Command', psCommand], log)
+      hadAdminAttemptFailure = false
+      break
+    } catch (err) {
+      hadAdminAttemptFailure = true
+      const errMsg = err instanceof Error ? err.message : ''
+      const errLines = ((err as RunError).lines ?? []).join('\n')
+      const lower = (errMsg + '\n' + errLines).toLowerCase()
+
+      // Definite failures — throw immediately
+      if (
+        lower.includes('canceled') ||
+        lower.includes('cancelled') ||
+        lower.includes('elevation') ||
+        lower.includes('access denied') ||
+        lower.includes('permission')
+      ) {
+        throw new Error(t('installer.adminRequired'))
+      }
+      if (lower.includes('not recognized') || lower.includes('not found')) {
+        throw new Error(t('installer.windowsVersionError'))
+      }
+      if (lower.includes('virtualization') || lower.includes('hyper-v')) {
+        throw new Error(t('installer.biosVirtualization'))
+      }
+      // exit -1 (4294967295) is WSL's signal that a reboot is required
+      if (errMsg.includes('exit -1') || errMsg.includes('exit 4294967295')) {
+        log(t('installer.wslDone'))
+        return { needsReboot: true, state: 'needs_reboot' }
+      }
+      // Keep trying another recipe, then rely on post-check state below.
     }
-    if (lower.includes('not recognized') || lower.includes('not found')) {
-      throw new Error(t('installer.windowsVersionError'))
-    }
-    if (lower.includes('virtualization') || lower.includes('hyper-v')) {
-      throw new Error(t('installer.biosVirtualization'))
-    }
-    // exit -1 (4294967295) is WSL's signal that a reboot is required
-    if (errMsg.includes('exit -1') || errMsg.includes('exit 4294967295')) {
-      log(t('installer.wslDone'))
-      return { needsReboot: true, state: 'needs_reboot' }
-    }
-    // Other ambiguous errors — fall through to state check
+  }
+
+  if (hadAdminAttemptFailure) {
+    log(t('installer.wslRetryingStateProbe'))
   }
 
   // Verify actual WSL state regardless of exit code
@@ -209,7 +249,7 @@ export const installWsl = async (
     return { needsReboot: newState === 'needs_reboot', state: newState }
   }
 
-  // No state change — actual failure; show user-friendly message
+  // No state change — actual failure; show user-friendly message (without terminal requirement)
   throw new Error(t('installer.wslInstallFailed'))
 }
 
@@ -248,8 +288,9 @@ export const installPythonWsl = async (win: BrowserWindow): Promise<void> => {
 export const installOpenClawWsl = async (win: BrowserWindow): Promise<void> => {
   const log = (msg: string): void => sendProgress(win, msg)
   log(t('installer.ocWslInstalling'))
+  const pkgSpec = await getApprovedOpenclawPackageSpec()
   /* PATH-only: avoid OLLAMA mkdir/export here — empty decoded path broke npm postinstall (`mkdir ''`). */
-  await runInWsl(`${buildWslPathOnlyPrefix()} && npm install -g ${APPROVED_OPENCLAW_PACKAGE_SPEC}`, 120000)
+  await runInWsl(`${buildWslPathOnlyPrefix()} && npm install -g ${pkgSpec}`, 120000)
   log(t('installer.ocWslDone'))
 }
 
@@ -374,6 +415,7 @@ const ensureXcodeCli = async (log: ProgressCallback): Promise<void> => {
 export const installOpenClaw = async (win: BrowserWindow): Promise<void> => {
   const log = (msg: string): void => sendProgress(win, msg)
   log(t('installer.ocInstalling'))
+  const pkgSpec = await getApprovedOpenclawPackageSpec()
 
   await ensureXcodeCli(log)
   const npmCacheDir = join(homedir(), '.npm')
@@ -387,7 +429,7 @@ export const installOpenClaw = async (win: BrowserWindow): Promise<void> => {
   await runWithLog('npm', ['config', 'set', 'prefix', npmGlobalDir], log, {
     env: getPathEnv()
   })
-  await runWithLog('npm', ['install', '-g', APPROVED_OPENCLAW_PACKAGE_SPEC], log, {
+  await runWithLog('npm', ['install', '-g', pkgSpec], log, {
     env: getPathEnv()
   })
 

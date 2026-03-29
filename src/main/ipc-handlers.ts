@@ -1,11 +1,16 @@
-import { ipcMain, BrowserWindow, app, dialog } from 'electron'
+import { ipcMain, BrowserWindow, app, dialog, shell } from 'electron'
 import { spawn } from 'child_process'
 import { platform } from 'os'
 import { join } from 'path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'fs'
 import i18nMain, { initI18nMain } from '../shared/i18n/main'
 import { rebuildTrayMenu } from './services/tray-manager'
-import { checkEnvironment, checkOllamaWizardDiskSpace, checkOpenclawUpdate } from './services/env-checker'
+import {
+  checkEnvironment,
+  checkOllamaWizardDiskSpace,
+  checkOpenclawUpdate,
+  getWslWindowsSystemDriveDiskHint
+} from './services/env-checker'
 import { checkPort, runFixerFix } from './services/troubleshooter'
 import {
   installNodeMac,
@@ -29,7 +34,7 @@ import {
   ensureGatewayReady,
   setGatewayLogCallback
 } from './services/gateway'
-import { checkWslState } from './services/wsl-utils'
+import { checkWslState, diagnoseWslInstall } from './services/wsl-utils'
 import { checkForUpdates, downloadUpdate, installUpdate } from './services/updater'
 import { uninstallOpenClaw } from './services/uninstaller'
 import { exportBackup, importBackup } from './services/backup'
@@ -106,6 +111,35 @@ export const registerIpcHandlers = (getWin: () => BrowserWindow | null): void =>
 
   // WSL-related IPC
   ipcMain.handle('wsl:check', () => checkWslState())
+  ipcMain.handle('wsl:system-drive-disk-hint', () => getWslWindowsSystemDriveDiskHint())
+  ipcMain.handle('wsl:diagnose', () => diagnoseWslInstall())
+  ipcMain.handle('wsl:open-features', async () => {
+    if (platform() !== 'win32') return { success: false as const, error: 'windows_only' }
+    try {
+      await shell.openExternal('ms-settings:optionalfeatures')
+      return { success: true as const }
+    } catch {
+      return { success: false as const, error: 'open_failed' }
+    }
+  })
+  ipcMain.handle('wsl:open-store-ubuntu', async () => {
+    if (platform() !== 'win32') return { success: false as const, error: 'windows_only' }
+    try {
+      await shell.openExternal('ms-windows-store://pdp/?ProductId=9PDXGNCFSCZV')
+      return { success: true as const }
+    } catch {
+      return { success: false as const, error: 'open_failed' }
+    }
+  })
+  ipcMain.handle('wsl:open-windows-update', async () => {
+    if (platform() !== 'win32') return { success: false as const, error: 'windows_only' }
+    try {
+      await shell.openExternal('ms-settings:windowsupdate')
+      return { success: true as const }
+    } catch {
+      return { success: false as const, error: 'open_failed' }
+    }
+  })
 
   ipcMain.handle('wsl:install', async (_e, prevState?: string) => {
     try {
@@ -584,8 +618,10 @@ export const registerIpcHandlers = (getWin: () => BrowserWindow | null): void =>
   ipcMain.handle('autolaunch:set', (_e, enabled: boolean) => {
     app.setLoginItemSettings({
       openAtLogin: enabled,
-      openAsHidden: true
+      openAsHidden: true,
+      args: ['--hidden']
     })
+    writeSettings({ autoLaunchInitialized: true, autoLaunchEnabled: enabled })
     return { success: true }
   })
 

@@ -6,6 +6,9 @@
   "welcome": {
     "title": "专属 AI 智能体，一键搞定",
     "desc": "轻松快速安装 OpenClaw\n通过 Telegram 与 AI 对话",
+    "installingTitle": "正在安装 OpenClaw",
+    "customizedBy": "定制方",
+    "termsAgree": "我已阅读并同意 <terms>服务条款</terms> 和 <privacy>隐私政策</privacy>。",
     "start": "开始",
     "language": "语言"
   },
@@ -59,7 +62,12 @@
     "wslFailed": "WSL 安装失败",
     "wslError": "安装 WSL 时发生错误",
     "ubuntuFailed": "Ubuntu 安装失败",
-    "ubuntuError": "安装 Ubuntu 时发生错误"
+    "ubuntuError": "安装 Ubuntu 时发生错误",
+    "diskHintTitle": "系统盘可用空间（WSL 需要）",
+    "diskHintBody": "Ubuntu/WSL 会在 Windows 用户配置下存放较大的虚拟磁盘，通常在 {{drive}}，与“设置 > 存储 > 新内容的保存位置”无关。安装前请在 {{drive}} 预留约 {{recommendedGiB}} GiB，用于 WSL、系统更新和后续增长。更大的 AI 模型以后还需要更多空间（见模型步骤）。",
+    "diskHintFreeRow": "当前可用：约 {{freeGiB}} GiB（{{drive}}）",
+    "diskHintFreeUnknown": "无法读取 {{drive}} 的可用空间。",
+    "diskHintLow": "磁盘空间偏低：建议在 {{drive}} 至少保留 {{recommendedGiB}} GiB。可清空回收站、卸载不常用的大型应用或使用磁盘清理后再继续。"
   },
   "install": {
     "done": "安装完成！",
