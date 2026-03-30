@@ -7,7 +7,7 @@ This document defines a single source of truth for release versioning and update
 The **desktop app** and **Windows zip** name follow **standard npm semver** (three numeric segments):
 
 - Examples: `1.1.0`, `1.1.1`, `1.1.2`, `1.2.0`
-- **Do not** use a leading zero in the patch segment (use **`1.1.2`**, not `1.1.02`) so `package.json`, GitHub tags, and **`OpenClaw-1.1.2-win.zip`** stay aligned with electron-builder.
+- **Do not** use a leading zero in the patch segment (use **`1.1.2`**) so `package.json`, GitHub tags, and **`OpenClaw-1.1.2-win.zip`** stay aligned with electron-builder.
 
 Progression:
 
@@ -64,13 +64,10 @@ CLI tags may use a different scheme (e.g. calendar-based); that is independent o
 - Wrong version installed:
   - verify resolved package spec from `getApprovedOpenclawPackageSpec()`
 - Windows install **HTTP 404** on zip:
-  - The path segment after `download/` is the **GitHub release tag** (e.g. `v1.1.02`), not always identical to `package.json` if you once tagged with a leading zero in the patch.
   - The **filename** must match the uploaded asset (usually **`OpenClaw-<semver from package.json>-win.zip`**, e.g. `OpenClaw-1.1.2-win.zip`).
-  - Example that works for the current `WalnutThinh/OpenClaw` release: tag **`v1.1.02`**, file **`OpenClaw-1.1.2-win.zip`** →  
-    `https://github.com/WalnutThinh/OpenClaw/releases/download/v1.1.02/OpenClaw-1.1.2-win.zip`  
-    Using **`v1.1.2`** in that URL returns **404** because no release exists at that tag.
+  - GitHub release tags may not perfectly align with `package.json` (provider quirks like a leading zero in the tag). This repo avoids mixing in our own semver filenames.
   - Verify with: `curl -sI "<your appZipUrl>"` (expect **302** from `github.com`).
-  - The bootstrapper and `build-windows-bootstrapper.mjs` **auto-correct** the mistaken URL ending in `.../v1.1.02/OpenClaw-1.1.02-win.zip` to use **`OpenClaw-1.1.2-win.zip`** (the asset that actually exists on that release).
+  - The bootstrapper/build has logic to normalize mistaken filenames with a leading-zero patch segment and resolves a tagless `github-release-asset://` scheme to the correct GitHub tag automatically.
 
 ## 6) Notes for Future Maintainers
 

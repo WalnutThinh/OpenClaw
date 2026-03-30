@@ -23,21 +23,22 @@ let mainWindow: BrowserWindow | null = null
 
 type InstallManifest = { appZipUrl: string }
 
-/** GitHub release v1.1.02 has asset OpenClaw-1.1.2-win.zip; ...1.1.02-win.zip 404s. */
 function normalizeKnownBrokenGithubZipUrl(url: string): string {
   try {
+    if (url.startsWith('github-release-asset://')) return url
     const u = new URL(url)
     if (u.hostname !== 'github.com') return url
     const parts = u.pathname.split('/').filter(Boolean)
     const d = parts.indexOf('download')
     if (d < 0 || parts.length < d + 3) return url
-    if (
-      parts[0] === 'WalnutThinh' &&
-      parts[1] === 'OpenClaw' &&
-      parts[d + 1] === 'v1.1.02' &&
-      parts[d + 2] === 'OpenClaw-1.1.02-win.zip'
-    ) {
-      parts[d + 2] = 'OpenClaw-1.1.2-win.zip'
+    const file = parts[d + 2]
+    // If someone accidentally builds `OpenClaw-x.y.0z-win.zip`, rewrite to `OpenClaw-x.y.z-win.zip`.
+    const m = /^OpenClaw-(\d+)\.(\d+)\.0(\d+)-win\.zip$/i.exec(file)
+    if (!m) return url
+    const fixed = `OpenClaw-${m[1]}.${m[2]}.${m[3]}-win.zip`
+    if (fixed === file) return url
+    {
+      parts[d + 2] = fixed
       u.pathname = `/${parts.join('/')}`
       return u.toString()
     }
@@ -45,6 +46,34 @@ function normalizeKnownBrokenGithubZipUrl(url: string): string {
     return url
   }
   return url
+}
+
+function resolveGithubReleaseAssetCandidates(schemeUrl: string): string[] {
+  // github-release-asset://OWNER/REPO/AssetFile.zip
+  try {
+    const raw = schemeUrl.replace(/^github-release-asset:\/\//, '')
+    const [owner, repo, asset] = raw.split('/')
+    if (!owner || !repo || !asset) return []
+    const semverMatch = /^OpenClaw-(\d+)\.(\d+)\.(\d+)-win\.zip$/i.exec(asset)
+    const x = semverMatch?.[1]
+    const y = semverMatch?.[2]
+    const z = semverMatch?.[3]
+    const tags = new Set<string>()
+    if (x && y && z) {
+      tags.add(`v${x}.${y}.${z}`)
+      tags.add(`v${x}.${y}.${z.padStart(2, '0')}`)
+    }
+    const candidates: string[] = []
+    for (const tag of tags) {
+      candidates.push(`https://github.com/${owner}/${repo}/releases/download/${tag}/${asset}`)
+    }
+    if (candidates.length === 0) {
+      candidates.push(`https://github.com/${owner}/${repo}/releases/latest/download/${asset}`)
+    }
+    return candidates
+  } catch {
+    return []
+  }
 }
 
 function readInstallManifest(): InstallManifest | null {
@@ -57,6 +86,7 @@ function readInstallManifest(): InstallManifest | null {
     const url = (j as InstallManifest).appZipUrl
     if (typeof url !== 'string') return null
     const u = url.trim()
+    if (u.startsWith('github-release-asset://')) return { appZipUrl: u }
     if (u.startsWith('https://') || u.startsWith('http://'))
       return { appZipUrl: normalizeKnownBrokenGithubZipUrl(u) }
   } catch {
@@ -95,52 +125,61 @@ async function downloadToFile(
   wc: Electron.WebContents,
   onProgress: (n: { received: number; total?: number }) => void
 ): Promise<void> {
-  const res = await fetch(urlStr, { redirect: 'follow' })
-  if (!res.ok) {
-    throw new Error(
-      `Download failed (HTTP ${res.status}). URL: ${urlStr}. Check the release tag, asset name, and your network.`
-    )
-  }
-  const cl = res.headers.get('content-length')
-  const total = cl ? parseInt(cl, 10) : undefined
-  const body = res.body
-  if (!body) throw new Error('Empty download response')
+  const tryUrls =
+    urlStr.startsWith('github-release-asset://') ? resolveGithubReleaseAssetCandidates(urlStr) : [urlStr]
+  if (tryUrls.length === 0) throw new Error(`Download failed. Bad URL: ${urlStr}`)
 
-  const reader = body.getReader()
-  const ws = createWriteStream(destPath)
-  let received = 0
-  let lastAt = 0
-  try {
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      if (value?.byteLength) {
-        received += value.byteLength
-        await new Promise<void>((resolveWrite, rejectWrite) => {
-          ws.write(Buffer.from(value), (err) => (err ? rejectWrite(err) : resolveWrite()))
-        })
-        const now = Date.now()
-        if (now - lastAt > 280) {
-          lastAt = now
-          if (!wc.isDestroyed()) {
-            onProgress({ received, total })
+  for (let i = 0; i < tryUrls.length; i++) {
+    const attemptUrl = tryUrls[i]
+    const res = await fetch(attemptUrl, { redirect: 'follow' })
+    if (!res.ok) {
+      if (res.status === 404 && i < tryUrls.length - 1) continue
+      throw new Error(
+        `Download failed (HTTP ${res.status}). URL: ${attemptUrl}. Check the release tag, asset name, and your network.`
+      )
+    }
+
+    const cl = res.headers.get('content-length')
+    const total = cl ? parseInt(cl, 10) : undefined
+    const body = res.body
+    if (!body) throw new Error('Empty download response')
+
+    const reader = body.getReader()
+    const ws = createWriteStream(destPath)
+    let received = 0
+    let lastAt = 0
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        if (value?.byteLength) {
+          received += value.byteLength
+          await new Promise<void>((resolveWrite, rejectWrite) => {
+            ws.write(Buffer.from(value), (err) => (err ? rejectWrite(err) : resolveWrite()))
+          })
+          const now = Date.now()
+          if (now - lastAt > 280) {
+            lastAt = now
+            if (!wc.isDestroyed()) {
+              onProgress({ received, total })
+            }
           }
         }
       }
+      if (!wc.isDestroyed()) onProgress({ received, total })
+      ws.end()
+      await finished(ws)
+      return
+    } catch (e) {
+      ws.destroy()
+      try {
+        unlinkSync(destPath)
+      } catch {
+        /* ignore */
+      }
+      if (i < tryUrls.length - 1) continue
+      throw e
     }
-    if (!wc.isDestroyed()) {
-      onProgress({ received, total })
-    }
-    ws.end()
-    await finished(ws)
-  } catch (e) {
-    ws.destroy()
-    try {
-      unlinkSync(destPath)
-    } catch {
-      /* ignore */
-    }
-    throw e
   }
 }
 

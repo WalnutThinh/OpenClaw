@@ -28,7 +28,7 @@ The bootstrapper does **not** embed the zip; it downloads at install time from `
    set OPENCLAW_APP_ZIP_URL=https://github.com/OWNER/REPO/releases/download/v1.1.2/OpenClaw-1.1.2-win.zip
    npm run build:win-setup
    ```
-   The segment after `download/` must be your **actual GitHub tag** (e.g. if the release is tagged `v1.1.02` but the zip is named `OpenClaw-1.1.2-win.zip`, use `v1.1.02` in the URL — see **`docs/RELEASE-VERSIONING-GUIDE.md`** §5).
+   GitHub tag strings may include provider-specific quirks; this repo uses canonical **semver filenames** (e.g. `OpenClaw-1.1.2-win.zip`) and resolves the correct tag automatically via the `github-release-asset://` scheme logic (see **`docs/RELEASE-VERSIONING-GUIDE.md`** §5).
    Or from PowerShell: `$env:OPENCLAW_APP_ZIP_URL="..."; npm run build:win-setup`
 4. Output: **`dist/installer/OPENCLAW-setup.exe`**.
 

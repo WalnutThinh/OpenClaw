@@ -34,7 +34,35 @@ function readRootPackageVersion() {
   }
 }
 
-/** Tag v1.1.02 on this repo ships OpenClaw-1.1.2-win.zip; OpenClaw-1.1.02-win.zip is a common mistaken URL (404). */
+/**
+ * Normalize GitHub zip URL into a tagless scheme:
+ * - input: https://github.com/OWNER/REPO/releases/download/<tag>/<asset>
+ * - output: github-release-asset://OWNER/REPO/<asset>
+ *
+ * This keeps our semver filenames canonical (no leading-zero patch) while still
+ * handling providers whose GitHub tag may differ (e.g. patch segment padded).
+ */
+function toGithubReleaseAssetScheme(url) {
+  try {
+    const u = new URL(url)
+    if (u.hostname !== 'github.com') return url
+    const parts = u.pathname.split('/').filter(Boolean)
+    const d = parts.indexOf('download')
+    if (d < 0 || parts.length < d + 2) return url
+    const owner = parts[0]
+    const repo = parts[1]
+    // Expected structure: OWNER/REPO/releases/download/<tag>/<asset>
+    // Index of <asset> is d + 2
+    const assetName = parts[d + 2]
+    if (!owner || !repo || !assetName) return url
+    return `github-release-asset://${owner}/${repo}/${assetName}`
+  } catch {
+    return url
+  }
+}
+
+// Legacy: if a manifest/url accidentally uses OpenClaw-*.-win.zip where patch segment has a leading 0,
+// fix the filename portion while keeping the URL structure intact.
 function normalizeAppZipUrl(url) {
   try {
     const u = new URL(url)
@@ -42,18 +70,14 @@ function normalizeAppZipUrl(url) {
     const parts = u.pathname.split('/').filter(Boolean)
     const d = parts.indexOf('download')
     if (d < 0 || parts.length < d + 3) return url
-    const tag = parts[d + 1]
     const file = parts[d + 2]
-    if (
-      parts[0] === 'WalnutThinh' &&
-      parts[1] === 'OpenClaw' &&
-      tag === 'v1.1.02' &&
-      file === 'OpenClaw-1.1.02-win.zip'
-    ) {
-      parts[d + 2] = 'OpenClaw-1.1.2-win.zip'
-      u.pathname = `/${parts.join('/')}`
-      return u.toString()
-    }
+    const m = /^OpenClaw-(\d+)\.(\d+)\.0(\d+)-win\.zip$/i.exec(file)
+    if (!m) return url
+    const fixed = `OpenClaw-${m[1]}.${m[2]}.${m[3]}-win.zip`
+    if (fixed === file) return url
+    parts[d + 2] = fixed
+    u.pathname = `/${parts.join('/')}`
+    return u.toString()
   } catch {
     /* ignore */
   }
@@ -124,12 +148,8 @@ function writeManifest(zipPath) {
     const base = (process.env.OPENCLAW_APP_ZIP_BASE_URL ?? 'https://enchante.cloud/downloads').replace(/\/$/, '')
     return `${base}/${encodeURIComponent(zipName)}`
   })()
-  const normalizedUrl = normalizeAppZipUrl(appZipUrl)
-  if (normalizedUrl !== appZipUrl) {
-    console.warn('[build-windows-bootstrapper] Fixed appZipUrl (asset on GitHub is OpenClaw-1.1.2-win.zip, not ...1.1.02...):')
-    console.warn('  ', normalizedUrl)
-    appZipUrl = normalizedUrl
-  }
+  appZipUrl = normalizeAppZipUrl(appZipUrl)
+  appZipUrl = toGithubReleaseAssetScheme(appZipUrl)
   if (fullOverride && expectedZip) {
     try {
       const u = new URL(fullOverride)
