@@ -1,29 +1,43 @@
-/** Full policy copy for the in-app welcome step (scroll panel). Legal text should be reviewed before release. */
+import { useTranslation } from 'react-i18next'
+
+/** Welcome scroll panel: user responsibilities + usage regulations (i18n). */
 export default function WelcomePolicyBody(): React.JSX.Element {
+  const { t } = useTranslation('steps')
   const p = 'mb-2.5 text-left text-[11px] leading-snug text-text-muted last:mb-0 sm:text-xs'
+  const h = 'mb-1.5 mt-3 text-left text-[11px] font-semibold text-text/90 first:mt-0 sm:text-xs'
+  const li = 'text-left text-[11px] leading-snug text-text-muted sm:text-xs'
+
   return (
     <div className="text-text-muted">
+      <p className={`${h} !mt-0`}>{t('welcome.userInfoTitle')}</p>
+      <ul className={`mb-2.5 list-inside list-disc space-y-1.5 pl-0.5 marker:text-text-muted/60`}>
+        <li className={li}>{t('welcome.userInfo1')}</li>
+        <li className={li}>{t('welcome.userInfo2')}</li>
+        <li className={li}>{t('welcome.userInfo3')}</li>
+        <li className={li}>{t('welcome.userInfo4')}</li>
+      </ul>
+
+      <p className={h}>{t('welcome.usageRulesTitle')}</p>
+      <ul className={`mb-2.5 list-inside list-disc space-y-1.5 pl-0.5 marker:text-text-muted/60`}>
+        <li className={li}>{t('welcome.usageRule1')}</li>
+        <li className={li}>{t('welcome.usageRule2')}</li>
+        <li className={li}>{t('welcome.usageRule3')}</li>
+        <li className={li}>{t('welcome.usageRule4')}</li>
+        <li className={li}>{t('welcome.usageRule5')}</li>
+      </ul>
+
+      <p className={h}>{t('welcome.legalNoteTitle')}</p>
+      <p className={p}>{t('welcome.legalNoteBody')}</p>
       <p className={p}>
-        <strong className="text-text-muted">OpenClaw — terms &amp; user information</strong>
+        <strong className="text-text-muted">{t('welcome.privacyTitle')}</strong> {t('welcome.privacyBody')}
       </p>
       <p className={p}>
-        By using OpenClaw you confirm you use this software lawfully, keep your credentials secure, and accept that
-        the software is provided “as is” without warranties beyond applicable law.
+        <strong className="text-text-muted">{t('welcome.updatesTitle')}</strong> {t('welcome.updatesBody')}
       </p>
       <p className={p}>
-        <strong className="text-text-muted">Privacy.</strong> The app may contact configured services (e.g. AI
-        providers, messaging platforms) using settings you provide. Third-party services have their own policies.
+        <strong className="text-text-muted">{t('welcome.liabilityTitle')}</strong> {t('welcome.liabilityBody')}
       </p>
-      <p className={p}>
-        <strong className="text-text-muted">Updates.</strong> New versions may be distributed separately. You may
-        remove the app by deleting its files and any shortcuts you created.
-      </p>
-      <p className={p}>
-        <strong className="text-text-muted">Liability.</strong> To the maximum extent permitted by law, Enchante
-        Direction and contributors are not liable for indirect damages or data loss from use or inability to use the
-        software.
-      </p>
-      <p className={p}>If you do not agree, do not continue.</p>
+      <p className={p}>{t('welcome.declineHint')}</p>
     </div>
   )
 }

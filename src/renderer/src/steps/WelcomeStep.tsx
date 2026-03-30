@@ -27,7 +27,7 @@ export default function WelcomeStep({ onNext }: { onNext: () => void }): React.J
 
         <p className="relative max-w-sm text-xs leading-snug text-text-muted sm:text-[13px]">{t('welcome.policyHint')}</p>
 
-        <div className="border-glass-border relative w-full min-h-[120px] max-h-[min(220px,40vh)] flex-1 overflow-y-auto rounded-xl border bg-white/[0.04] px-3 py-3 text-left sm:min-h-[140px] sm:px-4">
+        <div className="border-glass-border relative w-full min-h-[140px] max-h-[min(320px,48vh)] flex-1 overflow-y-auto rounded-xl border bg-white/[0.04] px-3 py-3 text-left sm:min-h-[160px] sm:px-4">
           <WelcomePolicyBody />
         </div>
 

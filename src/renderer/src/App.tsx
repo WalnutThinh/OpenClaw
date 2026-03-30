@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import StepIndicator from './components/StepIndicator'
 import UpdateBanner from './components/UpdateBanner'
 import TwinkleDots from './components/TwinkleDots'
-import enchanteMarkSrc from './assets/logo-enchante.svg'
 import openclawMarkSrc from './assets/openclaw-color.svg'
 import { useWizard } from './hooks/useWizard'
 import WelcomeStep from './steps/WelcomeStep'
@@ -308,14 +307,7 @@ function App(): React.JSX.Element {
               {t('versionDisplay', { version: (version || '1.1.2').replace(/^v/i, '') })}
             </span>
           </div>
-          <div className="flex flex-1 items-center justify-center gap-2">
-            <span className="text-[10px] text-text-muted/40">Customized by</span>
-            <img
-              src={enchanteMarkSrc}
-              alt="Enchante"
-              className="h-[18px] w-auto object-contain opacity-90"
-            />
-          </div>
+          <div className="flex flex-1" aria-hidden="true" />
           <div className="absolute right-4 flex items-center gap-3">
             {import.meta.env.DEV && currentStep !== 'done' && (
               <button
