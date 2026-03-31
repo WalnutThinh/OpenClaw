@@ -4,7 +4,7 @@ import { readAppSettings } from './app-settings'
 export const SETTINGS_OLLAMA_MODELS_WIN_PATH = 'ollamaModelsWinPath'
 
 /**
- * Convert e.g. `D:\OpenClaw\Ollama` → `/mnt/d/OpenClaw/Ollama/models`.
+ * Convert e.g. `D:\EClaw\Ollama` → `/mnt/d/EClaw/Ollama/models`.
  * Returns null if not a local drive path.
  */
 export function winPathToOllamaModelsWslPath(winPathRaw: string): string | null {

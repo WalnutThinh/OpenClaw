@@ -1,8 +1,7 @@
-import markSrc from '../assets/openclaw-dark.svg'
-import textSrc from '../assets/openclaw-text.svg'
+import markSrc from '../assets/eclaw-mark.png'
 
 /**
- * Center hero: OpenClaw mark + wordmark (wordmark inverted for dark UI).
+ * Center hero: logo + EClaw wordmark for dark UI.
  */
 export default function OpenClawBrandCenter(): React.JSX.Element {
   return (
@@ -13,11 +12,9 @@ export default function OpenClawBrandCenter(): React.JSX.Element {
         className="h-16 w-16 sm:h-[4.5rem] sm:w-[4.5rem] shrink-0 object-contain"
         aria-hidden
       />
-      <img
-        src={textSrc}
-        alt="OpenClaw"
-        className="h-7 max-w-[min(100%,220px)] object-contain object-left opacity-95 invert brightness-0 sm:h-8"
-      />
+      <span className="select-none text-2xl font-semibold tracking-tight text-white/95 sm:text-3xl">
+        EClaw
+      </span>
     </div>
   )
 }

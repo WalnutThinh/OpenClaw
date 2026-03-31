@@ -28,14 +28,15 @@
 ### Custom installer: **2 file** (nhỏ + gói app tải từ mạng)
 
 1. **`dist/installer/OPENCLAW-setup.exe`** — chỉ **Electron + UI cài đặt** (thường **~100–180 MB**), không nhúng app đầy đủ. Trong `resources` có **`install-manifest.json`** với `appZipUrl` trỏ tới file (2).
-2. **`dist/OpenClaw-*-win.zip`** (hoặc `*-win32-x64.zip`) — **toàn bộ app**; phải **đặt đúng URL** trong manifest (mặc định build script: `https://enchante.cloud/downloads/<tên-file-zip>`). `npm run sync-to-enchante-site` copy cả `.exe` và zip app vào `enchante.cloud/public/downloads/`.
+2. **`dist/EClaw-*-win.zip`** (hoặc `*-win32-x64.zip`) — **toàn bộ app**; publish bằng `aws s3 cp`.
+3. **`dist/latest.json`** — metadata launcher đọc để biết URL + checksum; cũng publish bằng `aws s3 cp`.
 
 Luồng người dùng: chạy `.exe` → tải zip từ mạng → giải nén vào thư mục đã chọn. **Cần mạng** lúc cài (trừ bản dev có `payload/openclaw-app.zip`).
 
-- **Build:** `OPENCLAW_APP_ZIP_BASE_URL` / `OPENCLAW_APP_ZIP_URL` khi chạy `build-windows-bootstrapper.mjs` (xem script).
+- **Build launcher URL:** ưu tiên `OPENCLAW_LATEST_JSON_URL` khi chạy `build-windows-bootstrapper.mjs` (fallback cũ: `OPENCLAW_APP_ZIP_URL`).
 - Giải nén nhiều file + Defender vẫn có thể làm bước **Extract** lâu; UI hiển thị tiến độ tải (nếu có `Content-Length`) và số mục khi giải nén.
 
-**Quy tắc phát hành (Pages + GitHub Releases, cho agent):** xem **[AGENTS-WINDOWS-DISTRIBUTION.md](AGENTS-WINDOWS-DISTRIBUTION.md)**.
+**Quy tắc phát hành (AWS CLI + latest.json):** xem **[AGENTS-WINDOWS-DISTRIBUTION.md](AGENTS-WINDOWS-DISTRIBUTION.md)**.
 
 ### Cảnh báo khác trong log (bình thường)
 

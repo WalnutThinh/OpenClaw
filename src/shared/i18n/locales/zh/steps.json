@@ -155,8 +155,8 @@
     },
     "ollamaModelsPath": {
       "title": "将 Ollama 模型存到其他盘（Windows）",
-      "help": "选择空间充足的文件夹（如 D:\\OpenClaw\\Ollama）。在 WSL 中实际路径为 /mnt/…/models。留空并保存则使用默认（WSL 内的 /root/.ollama/models）。",
-      "placeholder": "D:\\OpenClaw\\Ollama",
+      "help": "选择空间充足的文件夹（如 D:\\EClaw\\Ollama）。在 WSL 中实际路径为 /mnt/…/models。留空并保存则使用默认（WSL 内的 /root/.ollama/models）。",
+      "placeholder": "D:\\EClaw\\Ollama",
       "browse": "浏览…",
       "saveApply": "保存并应用到 Ollama（WSL）",
       "saved": "已保存。若可用 systemd，已重启 Ollama。",

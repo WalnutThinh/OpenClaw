@@ -156,8 +156,8 @@
     },
     "ollamaModelsPath": {
       "title": "Stocker les modèles Ollama sur un autre disque (Windows)",
-      "help": "Choisissez un dossier sur un disque avec de l’espace (ex. D:\\OpenClaw\\Ollama). Dans WSL, les fichiers vont sous /mnt/…/models. Laissez vide et enregistrez pour le défaut (/root/.ollama/models).",
-      "placeholder": "D:\\OpenClaw\\Ollama",
+      "help": "Choisissez un dossier sur un disque avec de l’espace (ex. D:\\EClaw\\Ollama). Dans WSL, les fichiers vont sous /mnt/…/models. Laissez vide et enregistrez pour le défaut (/root/.ollama/models).",
+      "placeholder": "D:\\EClaw\\Ollama",
       "browse": "Parcourir…",
       "saveApply": "Enregistrer et appliquer à Ollama (WSL)",
       "saved": "Enregistré. Ollama a été redémarré si systemd est disponible.",

@@ -3,8 +3,8 @@ import { existsSync } from 'fs'
 import { join } from 'path'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 
-/* Windows toast / shell may show package.json "name" otherwise (e.g. OpenClaw-Enchante). */
-app.setName('OpenClaw')
+/* Windows toast / shell may show package.json "name" otherwise (e.g. openclaw-enchante). */
+app.setName('EClaw')
 import { registerIpcHandlers, getSavedLocale } from './ipc-handlers'
 import { createTray, startPolling, destroyTray } from './services/tray-manager'
 import { setupAutoUpdater, checkForUpdates } from './services/updater'
@@ -18,7 +18,7 @@ import { readAppSettings, writeAppSettings } from './services/app-settings'
  * Match @electron-toolkit/utils: dev uses electron.exe path to avoid wrong grouping.
  */
 if (process.platform === 'win32') {
-  app.setAppUserModelId(app.isPackaged ? 'com.enchante.openclaw' : process.execPath)
+  app.setAppUserModelId(app.isPackaged ? 'com.enchante.eclaw' : process.execPath)
 }
 
 let ipcRegistered = false
@@ -77,7 +77,7 @@ function createWindow(): void {
     }
   })
 
-  mainWindow.setTitle('OpenClaw')
+  mainWindow.setTitle('EClaw')
 
   mainWindow.on('ready-to-show', () => {
     /* Windows/Linux: re-apply icon when shell is ready (fixes generic taskbar tile in some builds). */
@@ -148,7 +148,7 @@ app.on('before-quit', () => {
 app.whenReady().then(async () => {
   await initI18nMain(getSavedLocale())
   /* Re-apply after ready so @electron-toolkit/utils rules match (dev vs packaged). */
-  electronApp.setAppUserModelId('com.enchante.openclaw')
+  electronApp.setAppUserModelId('com.enchante.eclaw')
 
   // Windows packaged app: enable auto-start by default on first run.
   if (process.platform === 'win32' && app.isPackaged) {

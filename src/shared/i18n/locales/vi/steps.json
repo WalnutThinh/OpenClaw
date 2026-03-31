@@ -158,8 +158,8 @@
     },
     "ollamaModelsPath": {
       "title": "Lưu model Ollama trên ổ khác (Windows)",
-      "help": "Chọn thư mục trên ổ còn trống (ví dụ D:\\OpenClaw\\Ollama). Trong WSL, model nằm trong thư mục con models tại /mnt/…. Để trống và lưu để dùng mặc định (/root/.ollama/models trên đĩa WSL).",
-      "placeholder": "D:\\OpenClaw\\Ollama",
+      "help": "Chọn thư mục trên ổ còn trống (ví dụ D:\\EClaw\\Ollama). Trong WSL, model nằm trong thư mục con models tại /mnt/…. Để trống và lưu để dùng mặc định (/root/.ollama/models trên đĩa WSL).",
+      "placeholder": "D:\\EClaw\\Ollama",
       "browse": "Duyệt…",
       "saveApply": "Lưu & áp dụng cho Ollama (WSL)",
       "saved": "Đã lưu. Ollama đã được khởi động lại với thư mục mới nếu có systemd.",

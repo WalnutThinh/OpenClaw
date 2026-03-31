@@ -1,12 +1,14 @@
 /**
  * Builds the small Windows installer at ../dist/installer/OPENCLAW-setup.exe (~Electron UI only).
- * Writes build/install-manifest.json with the HTTPS URL of the app zip (hosted separately).
+ * Writes build/install-manifest.json with latest.json URL + fallback zip URL.
  *
  * Env (optional):
- *   OPENCLAW_APP_ZIP_URL     — full URL to the zip (overrides base + basename)
+ *   OPENCLAW_LATEST_JSON_URL — URL to latest.json (default: https://enchante.cloud/downloads/latest.json)
+ *   OPENCLAW_APP_ZIP_URL     — full URL to the zip (fallback; overrides base + basename)
  *   OPENCLAW_APP_ZIP_BASE_URL — default https://enchante.cloud/downloads
  *
- * Still copies dist app zip → setup-bootstrapper/payload/openclaw-app.zip for local `npm run dev`.
+ * Copies dist app zip → setup-bootstrapper/payload/openclaw-app.zip for local `npm run dev`
+ * (best-effort; skipped if Windows locks the zip — portable .exe still uses manifest URL only).
  *
  * From repo root: npm run build:win-setup
  */
@@ -31,6 +33,18 @@ function readRootPackageVersion() {
     return typeof v === 'string' && v.trim() ? v.trim() : null
   } catch {
     return null
+  }
+}
+
+/** Matches `electron-builder.yml` `productName` (Windows zip basename prefix). */
+function readElectronBuilderProductName() {
+  try {
+    const raw = readFileSync(join(root, 'electron-builder.yml'), 'utf8')
+    const m = /^productName:\s*(.+)$/m.exec(raw)
+    const name = m?.[1]?.trim()
+    return name && /^[\w .-]+$/i.test(name) ? name : 'EClaw'
+  } catch {
+    return 'EClaw'
   }
 }
 
@@ -61,8 +75,7 @@ function toGithubReleaseAssetScheme(url) {
   }
 }
 
-// Legacy: if a manifest/url accidentally uses OpenClaw-*.-win.zip where patch segment has a leading 0,
-// fix the filename portion while keeping the URL structure intact.
+// Legacy: patch segment accidentally written as 0z → z (any product prefix, e.g. EClaw / OpenClaw).
 function normalizeAppZipUrl(url) {
   try {
     const u = new URL(url)
@@ -71,9 +84,9 @@ function normalizeAppZipUrl(url) {
     const d = parts.indexOf('download')
     if (d < 0 || parts.length < d + 3) return url
     const file = parts[d + 2]
-    const m = /^OpenClaw-(\d+)\.(\d+)\.0(\d+)-win\.zip$/i.exec(file)
+    const m = /^([\w.-]+)-(\d+)\.(\d+)\.0(\d+)-win\.zip$/i.exec(file)
     if (!m) return url
-    const fixed = `OpenClaw-${m[1]}.${m[2]}.${m[3]}-win.zip`
+    const fixed = `${m[1]}-${m[2]}.${m[3]}.${m[4]}-win.zip`
     if (fixed === file) return url
     parts[d + 2] = fixed
     u.pathname = `/${parts.join('/')}`
@@ -87,8 +100,9 @@ function normalizeAppZipUrl(url) {
 function findWinAppZip() {
   if (!existsSync(distDir)) return null
   const pkgVersion = readRootPackageVersion()
+  const product = readElectronBuilderProductName()
   if (pkgVersion) {
-    const exact = join(distDir, `OpenClaw-${pkgVersion}-win.zip`)
+    const exact = join(distDir, `${product}-${pkgVersion}-win.zip`)
     if (existsSync(exact)) return exact
   }
   const files = readdirSync(distDir).filter((f) => {
@@ -123,7 +137,8 @@ function ensureAppZip() {
 function writeManifest(zipPath) {
   const zipName = basename(zipPath)
   const pkgVersion = readRootPackageVersion()
-  const expectedZip = pkgVersion ? `OpenClaw-${pkgVersion}-win.zip` : null
+  const product = readElectronBuilderProductName()
+  const expectedZip = pkgVersion ? `${product}-${pkgVersion}-win.zip` : null
   const fullOverride = (process.env.OPENCLAW_APP_ZIP_URL ?? '').trim()
   const standardWinZip = /-win\.zip$/i.test(zipName) && !/win32-x64/i.test(zipName)
   if (
@@ -144,6 +159,7 @@ function writeManifest(zipPath) {
       `[build-windows-bootstrapper] Zip basename "${zipName}" does not match package.json (expected "${expectedZip}"); manifest URL comes from OPENCLAW_APP_ZIP_URL.`
     )
   }
+  const latestJsonUrl = (process.env.OPENCLAW_LATEST_JSON_URL ?? 'https://enchante.cloud/downloads/latest.json').trim()
   let appZipUrl = fullOverride || (() => {
     const base = (process.env.OPENCLAW_APP_ZIP_BASE_URL ?? 'https://enchante.cloud/downloads').replace(/\/$/, '')
     return `${base}/${encodeURIComponent(zipName)}`
@@ -164,18 +180,34 @@ function writeManifest(zipPath) {
     }
   }
   mkdirSync(buildDir, { recursive: true })
-  writeFileSync(manifestPath, JSON.stringify({ appZipUrl }, null, 2) + '\n', 'utf8')
+  const manifest = {
+    latestJsonUrl,
+    appZipUrl
+  }
+  writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
   console.log('[build-windows-bootstrapper] Wrote', manifestPath)
+  console.log('[build-windows-bootstrapper]   latestJsonUrl:', latestJsonUrl)
   console.log('[build-windows-bootstrapper]   appZipUrl:', appZipUrl)
   console.log(
-    '[build-windows-bootstrapper] Host this file at that URL (e.g. sync OpenClaw-*-win.zip to enchante.cloud/public/downloads/).'
+    '[build-windows-bootstrapper] Publish latest.json + zip before distributing OPENCLAW-setup.exe.'
   )
 }
 
 function copyPayloadForDev(zipPath) {
   mkdirSync(payloadDir, { recursive: true })
-  copyFileSync(zipPath, payloadZip)
-  console.log('[build-windows-bootstrapper] Dev payload:', zipPath, '→', payloadZip)
+  try {
+    copyFileSync(zipPath, payloadZip)
+    console.log('[build-windows-bootstrapper] Dev payload:', zipPath, '→', payloadZip)
+  } catch (e) {
+    if (e?.code === 'EBUSY' || e?.code === 'EPERM') {
+      console.warn(
+        '[build-windows-bootstrapper] Skipped payload copy (file locked). ' +
+          'Installer still uses install-manifest.json; for local `setup-bootstrapper` dev, copy the zip manually or retry.'
+      )
+      return
+    }
+    throw e
+  }
 }
 
 function copyBranding() {
@@ -210,7 +242,13 @@ function main() {
   if (install.status !== 0) process.exit(install.status ?? 1)
   const pack = spawnSync('npm', ['run', 'pack'], { cwd: bootstrapDir, stdio: 'inherit', shell: true })
   if (pack.status !== 0) process.exit(pack.status ?? 1)
-  console.log('[build-windows-bootstrapper] Done. Small installer: dist/installer/OPENCLAW-setup.exe')
+  const launcherExe = join(root, 'dist', 'installer', 'EClaw-Launcher.exe')
+  const setupAliasExe = join(root, 'dist', 'installer', 'EClaw-Setup.exe')
+  if (existsSync(launcherExe)) {
+    copyFileSync(launcherExe, setupAliasExe)
+    console.log('[build-windows-bootstrapper] Alias:', launcherExe, '→', setupAliasExe)
+  }
+  console.log('[build-windows-bootstrapper] Done. Small installer: dist/installer/EClaw-Launcher.exe')
 }
 
 main()

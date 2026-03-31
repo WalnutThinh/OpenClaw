@@ -1,7 +1,7 @@
 # Custom Windows installer (no NSIS). Output under ../dist/installer/ avoids clobbering main app
 # dist/win-unpacked and reduces "file locked" waits when dist/OPENCLAW-setup.exe is scanned/running.
-appId: com.enchante.openclaw.setup
-productName: OpenClaw Setup
+appId: com.enchante.eclaw.setup
+productName: EClaw Setup
 directories:
   output: ../dist/installer
   buildResources: build
@@ -15,11 +15,11 @@ extraResources:
   - from: build/icon.ico
     to: icon.ico
 win:
-  executableName: OPENCLAW-setup
+  executableName: EClaw-Launcher
   icon: build/icon.ico
   target:
     - target: portable
       arch:
         - x64
-  artifactName: OPENCLAW-setup.${ext}
+  artifactName: EClaw-Launcher.${ext}
 npmRebuild: false

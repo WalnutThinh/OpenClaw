@@ -108,7 +108,7 @@ export const createTray = (trayDeps: TrayDeps): void => {
   deps = trayDeps
   const icon = createTrayIcon()
   tray = new Tray(icon)
-  tray.setToolTip('OpenClaw')
+  tray.setToolTip('EClaw')
   updateMenu('stopped')
 
   if (process.platform === 'darwin') {

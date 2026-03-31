@@ -156,8 +156,8 @@
     },
     "ollamaModelsPath": {
       "title": "Ollama モデルを別ドライブに（Windows）",
-      "help": "空きのあるフォルダを選びます（例: D:\\OpenClaw\\Ollama）。WSL では /mnt/…/models に保存されます。空にして保存すると既定（/root/.ollama/models）を使います。",
-      "placeholder": "D:\\OpenClaw\\Ollama",
+      "help": "空きのあるフォルダを選びます（例: D:\\EClaw\\Ollama）。WSL では /mnt/…/models に保存されます。空にして保存すると既定（/root/.ollama/models）を使います。",
+      "placeholder": "D:\\EClaw\\Ollama",
       "browse": "参照…",
       "saveApply": "保存して Ollama（WSL）に適用",
       "saved": "保存しました。systemd があれば Ollama を再起動しました。",

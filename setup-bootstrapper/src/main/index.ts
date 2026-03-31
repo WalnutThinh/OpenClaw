@@ -1,6 +1,6 @@
 import { spawn } from 'child_process'
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
-import { createWriteStream } from 'fs'
+import { createReadStream, createWriteStream } from 'fs'
 import {
   existsSync,
   mkdirSync,
@@ -8,9 +8,10 @@ import {
   readdirSync,
   renameSync,
   rmdirSync,
+  statSync,
   unlinkSync
 } from 'fs'
-import { randomBytes } from 'crypto'
+import { createHash, randomBytes } from 'crypto'
 import { basename, join, dirname, resolve } from 'path'
 import { tmpdir } from 'os'
 import { finished } from 'stream/promises'
@@ -19,9 +20,19 @@ import extract from 'extract-zip'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+/** Installed app folder + exe (matches electron-builder `productName` / `executableName`). */
+const DESKTOP_APP_DIR = 'EClaw'
+const DESKTOP_APP_EXE = 'EClaw.exe'
+
 let mainWindow: BrowserWindow | null = null
 
-type InstallManifest = { appZipUrl: string }
+type InstallManifest = { appZipUrl?: string; latestJsonUrl?: string }
+type LatestJson = {
+  version?: string
+  url?: string
+  sha256?: string
+  size?: number
+}
 
 function normalizeKnownBrokenGithubZipUrl(url: string): string {
   try {
@@ -32,10 +43,9 @@ function normalizeKnownBrokenGithubZipUrl(url: string): string {
     const d = parts.indexOf('download')
     if (d < 0 || parts.length < d + 3) return url
     const file = parts[d + 2]
-    // If someone accidentally builds `OpenClaw-x.y.0z-win.zip`, rewrite to `OpenClaw-x.y.z-win.zip`.
-    const m = /^OpenClaw-(\d+)\.(\d+)\.0(\d+)-win\.zip$/i.exec(file)
+    const m = /^([\w.-]+)-(\d+)\.(\d+)\.0(\d+)-win\.zip$/i.exec(file)
     if (!m) return url
-    const fixed = `OpenClaw-${m[1]}.${m[2]}.${m[3]}-win.zip`
+    const fixed = `${m[1]}-${m[2]}.${m[3]}.${m[4]}-win.zip`
     if (fixed === file) return url
     {
       parts[d + 2] = fixed
@@ -54,7 +64,7 @@ function resolveGithubReleaseAssetCandidates(schemeUrl: string): string[] {
     const raw = schemeUrl.replace(/^github-release-asset:\/\//, '')
     const [owner, repo, asset] = raw.split('/')
     if (!owner || !repo || !asset) return []
-    const semverMatch = /^OpenClaw-(\d+)\.(\d+)\.(\d+)-win\.zip$/i.exec(asset)
+    const semverMatch = /^[\w.-]+-(\d+)\.(\d+)\.(\d+)-win\.zip$/i.exec(asset)
     const x = semverMatch?.[1]
     const y = semverMatch?.[2]
     const z = semverMatch?.[3]
@@ -83,15 +93,34 @@ function readInstallManifest(): InstallManifest | null {
   try {
     const j = JSON.parse(readFileSync(p, 'utf8')) as unknown
     if (!j || typeof j !== 'object') return null
-    const url = (j as InstallManifest).appZipUrl
-    if (typeof url !== 'string') return null
-    const u = url.trim()
-    if (u.startsWith('github-release-asset://')) return { appZipUrl: u }
-    if (u.startsWith('https://') || u.startsWith('http://'))
-      return { appZipUrl: normalizeKnownBrokenGithubZipUrl(u) }
+    const fromLatest = typeof (j as InstallManifest).latestJsonUrl === 'string'
+      ? (j as InstallManifest).latestJsonUrl?.trim()
+      : ''
+    const fromZip = typeof (j as InstallManifest).appZipUrl === 'string'
+      ? (j as InstallManifest).appZipUrl?.trim()
+      : ''
+    const out: InstallManifest = {}
+    if (fromLatest && (fromLatest.startsWith('https://') || fromLatest.startsWith('http://'))) {
+      out.latestJsonUrl = fromLatest
+    }
+    if (fromZip) {
+      if (fromZip.startsWith('github-release-asset://')) out.appZipUrl = fromZip
+      else if (fromZip.startsWith('https://') || fromZip.startsWith('http://'))
+        out.appZipUrl = normalizeKnownBrokenGithubZipUrl(fromZip)
+    }
+    if (out.latestJsonUrl || out.appZipUrl) return out
   } catch {
     /* ignore */
   }
+  return null
+}
+
+function resolveLatestJsonUrl(manifest: InstallManifest | null): string | null {
+  const env = process.env.OPENCLAW_LATEST_JSON_URL?.trim()
+  if (env) return env
+  const man = manifest as InstallManifest & { latestJsonUrl?: string }
+  const fromManifest = man.latestJsonUrl?.trim()
+  if (fromManifest) return fromManifest
   return null
 }
 
@@ -101,22 +130,54 @@ function devPayloadZipPath(): string {
 
 type Source =
   | { kind: 'local'; path: string }
-  | { kind: 'remote'; url: string }
+  | { kind: 'remote'; url: string; viaLatestJson: boolean }
   | { kind: 'none'; reason: string }
 
 function resolveInstallSource(): Source {
   if (!app.isPackaged) {
     const local = devPayloadZipPath()
     if (existsSync(local)) return { kind: 'local', path: local }
+    const latestJsonUrl = process.env.OPENCLAW_LATEST_JSON_URL?.trim()
+    if (latestJsonUrl) return { kind: 'remote', url: latestJsonUrl, viaLatestJson: true }
     const envUrl = process.env.OPENCLAW_APP_ZIP_URL?.trim()
-    if (envUrl) return { kind: 'remote', url: normalizeKnownBrokenGithubZipUrl(envUrl) }
+    if (envUrl) return { kind: 'remote', url: normalizeKnownBrokenGithubZipUrl(envUrl), viaLatestJson: false }
     return { kind: 'none', reason: 'DEV_NO_ZIP' }
   }
   const man = readInstallManifest()
+  const latestJsonUrl = resolveLatestJsonUrl(man)
+  if (latestJsonUrl) return { kind: 'remote', url: latestJsonUrl, viaLatestJson: true }
   if (man?.appZipUrl && !/REPLACE_ME|PLACEHOLDER|OPENCLAW_APP_ZIP_REPLACE_ME/i.test(man.appZipUrl)) {
-    return { kind: 'remote', url: man.appZipUrl }
+    return { kind: 'remote', url: man.appZipUrl, viaLatestJson: false }
   }
   return { kind: 'none', reason: 'NO_MANIFEST' }
+}
+
+async function sha256File(filePath: string): Promise<string> {
+  return new Promise((resolveHash, rejectHash) => {
+    const h = createHash('sha256')
+    const rs = createReadStream(filePath)
+    rs.on('error', rejectHash)
+    rs.on('data', (chunk) => h.update(chunk))
+    rs.on('end', () => resolveHash(h.digest('hex')))
+  })
+}
+
+async function resolveLatestDownload(latestJsonUrl: string): Promise<{ downloadUrl: string; sha256?: string; size?: number }> {
+  const res = await fetch(latestJsonUrl, { redirect: 'follow' })
+  if (!res.ok) {
+    throw new Error(`Cannot fetch latest.json (HTTP ${res.status}). URL: ${latestJsonUrl}`)
+  }
+  const j = (await res.json()) as LatestJson
+  const raw = typeof j.url === 'string' ? j.url.trim() : ''
+  if (!raw) {
+    throw new Error(`latest.json is missing "url". URL: ${latestJsonUrl}`)
+  }
+  const normalized = raw.startsWith('github-release-asset://')
+    ? raw
+    : normalizeKnownBrokenGithubZipUrl(raw)
+  const sha = typeof j.sha256 === 'string' && /^[a-f0-9]{64}$/i.test(j.sha256.trim()) ? j.sha256.trim() : undefined
+  const size = typeof j.size === 'number' && Number.isFinite(j.size) && j.size > 0 ? Math.floor(j.size) : undefined
+  return { downloadUrl: normalized, sha256: sha, size }
 }
 
 async function downloadToFile(
@@ -131,22 +192,34 @@ async function downloadToFile(
 
   for (let i = 0; i < tryUrls.length; i++) {
     const attemptUrl = tryUrls[i]
-    const res = await fetch(attemptUrl, { redirect: 'follow' })
+    const existing = existsSync(destPath) ? statSync(destPath).size : 0
+    const headers: Record<string, string> = {}
+    if (existing > 0) headers.Range = `bytes=${existing}-`
+    const res = await fetch(attemptUrl, { redirect: 'follow', headers })
     if (!res.ok) {
       if (res.status === 404 && i < tryUrls.length - 1) continue
       throw new Error(
         `Download failed (HTTP ${res.status}). URL: ${attemptUrl}. Check the release tag, asset name, and your network.`
       )
     }
-
-    const cl = res.headers.get('content-length')
-    const total = cl ? parseInt(cl, 10) : undefined
+    const resumed = res.status === 206 && existing > 0
+    const total = (() => {
+      const cr = res.headers.get('content-range')
+      if (cr) {
+        const m = /\/(\d+)$/.exec(cr)
+        if (m) return parseInt(m[1], 10)
+      }
+      const cl = res.headers.get('content-length')
+      if (!cl) return undefined
+      const n = parseInt(cl, 10)
+      return resumed ? existing + n : n
+    })()
     const body = res.body
     if (!body) throw new Error('Empty download response')
 
     const reader = body.getReader()
-    const ws = createWriteStream(destPath)
-    let received = 0
+    const ws = createWriteStream(destPath, resumed ? { flags: 'a' } : { flags: 'w' })
+    let received = resumed ? existing : 0
     let lastAt = 0
     try {
       while (true) {
@@ -183,7 +256,7 @@ async function downloadToFile(
   }
 }
 
-/** electron-builder zip has one top-level folder (e.g. OpenClaw-win32-x64); flatten so OpenClaw.exe is in install root. */
+/** electron-builder zip has one top-level folder (e.g. EClaw-win32-x64); flatten so EClaw.exe is in install root. */
 function resolveWindowIcon(): string | undefined {
   const candidates: string[] = []
   if (app.isPackaged) {
@@ -198,12 +271,14 @@ function resolveWindowIcon(): string | undefined {
 }
 
 function flattenSingleAppFolder(root: string): void {
-  if (existsSync(join(root, 'OpenClaw.exe'))) return
+  if (existsSync(join(root, DESKTOP_APP_EXE)) || existsSync(join(root, 'OpenClaw.exe'))) return
   const entries = readdirSync(root, { withFileTypes: true })
   const dirs = entries.filter((e) => e.isDirectory())
   if (dirs.length !== 1) return
   const inner = join(root, dirs[0].name)
-  if (!existsSync(join(inner, 'OpenClaw.exe'))) return
+  const hasInnerExe =
+    existsSync(join(inner, DESKTOP_APP_EXE)) || existsSync(join(inner, 'OpenClaw.exe'))
+  if (!hasInnerExe) return
   for (const name of readdirSync(inner)) {
     renameSync(join(inner, name), join(root, name))
   }
@@ -228,7 +303,7 @@ function createWindow(): void {
     }
   })
 
-  mainWindow.setTitle('OpenClaw Setup')
+  mainWindow.setTitle('EClaw Setup')
 
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show()
@@ -314,6 +389,7 @@ app.whenReady().then(() => {
       ready: s.kind !== 'none',
       mode: s.kind === 'local' ? ('local' as const) : s.kind === 'remote' ? ('download' as const) : ('none' as const),
       remoteUrl: s.kind === 'remote' ? s.url : undefined,
+      remoteMode: s.kind === 'remote' ? (s.viaLatestJson ? ('latest-json' as const) : ('zip-url' as const)) : undefined,
       reason: s.kind === 'none' ? s.reason : undefined
     }
   })
@@ -343,7 +419,7 @@ app.whenReady().then(() => {
     if (!parentDir || typeof parentDir !== 'string') {
       return { ok: false as const, error: 'INVALID_DIR' }
     }
-    const targetRoot = resolve(parentDir, 'OpenClaw')
+    const targetRoot = resolve(parentDir, DESKTOP_APP_DIR)
     const wc = evt.sender
     let tempZip: string | null = null
     try {
@@ -352,17 +428,38 @@ app.whenReady().then(() => {
       if (src.kind === 'local') {
         zipPath = src.path
       } else {
+        let downloadUrl = src.url
+        let expectedSha256: string | undefined
+        let expectedSize: number | undefined
+        if (src.viaLatestJson) {
+          const latest = await resolveLatestDownload(src.url)
+          downloadUrl = latest.downloadUrl
+          expectedSha256 = latest.sha256
+          expectedSize = latest.size
+        }
         const sub = join(tmpdir(), `openclaw-setup-${randomBytes(8).toString('hex')}`)
         mkdirSync(sub, { recursive: true })
         tempZip = join(sub, 'openclaw-app.zip')
         if (!wc.isDestroyed()) {
           wc.send('setup:install-phase', { phase: 'download' as const })
         }
-        await downloadToFile(src.url, tempZip, wc, (p) => {
+        await downloadToFile(downloadUrl, tempZip, wc, (p) => {
           if (!wc.isDestroyed()) {
             wc.send('setup:download-progress', p)
           }
         })
+        if (expectedSize && existsSync(tempZip)) {
+          const got = statSync(tempZip).size
+          if (got !== expectedSize) {
+            throw new Error(`Download size mismatch. Expected ${expectedSize} bytes, got ${got} bytes.`)
+          }
+        }
+        if (expectedSha256) {
+          const gotSha = await sha256File(tempZip)
+          if (gotSha.toLowerCase() !== expectedSha256.toLowerCase()) {
+            throw new Error(`Checksum mismatch (sha256). Expected ${expectedSha256}, got ${gotSha}.`)
+          }
+        }
         zipPath = tempZip
       }
       if (!wc.isDestroyed()) {
@@ -373,8 +470,12 @@ app.whenReady().then(() => {
       if (!wc.isDestroyed()) {
         wc.send('setup:extract-progress', { done: true })
       }
-      const exe = join(targetRoot, 'OpenClaw.exe')
-      if (!existsSync(exe)) {
+      const exe = existsSync(join(targetRoot, DESKTOP_APP_EXE))
+        ? join(targetRoot, DESKTOP_APP_EXE)
+        : existsSync(join(targetRoot, 'OpenClaw.exe'))
+          ? join(targetRoot, 'OpenClaw.exe')
+          : null
+      if (!exe) {
         return { ok: false as const, error: 'EXTRACT_INCOMPLETE' }
       }
       return { ok: true as const, installPath: targetRoot, exePath: exe }

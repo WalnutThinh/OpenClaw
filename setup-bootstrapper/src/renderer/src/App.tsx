@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { EnchanteDirectionHeader } from './components/EnchanteBrandMark'
-import openclawDarkUrl from './assets/openclaw-dark.svg?url'
-import openclawTextUrl from './assets/openclaw-text.svg?url'
+import eclawMarkUrl from './assets/eclaw-mark.png?url'
 
 type Phase = 'idle' | 'installing' | 'done' | 'error'
 
@@ -160,8 +158,9 @@ export function App(): React.JSX.Element {
         }}
       >
         <header className="setup-chrome setup-chrome--brand">
-          <div className="setup-chrome-brand">
-            <EnchanteDirectionHeader markHeight={26} />
+          <div className="setup-chrome-brand" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <img src={eclawMarkUrl} alt="" width={18} height={18} style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#111827', userSelect: 'none' }}>EClaw</span>
           </div>
           <button type="button" className="setup-close" onClick={close} aria-label="Close">
             ×
@@ -216,8 +215,9 @@ export function App(): React.JSX.Element {
       }}
     >
       <header className="setup-chrome setup-chrome--brand">
-        <div className="setup-chrome-brand">
-          <EnchanteDirectionHeader markHeight={26} />
+        <div className="setup-chrome-brand" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <img src={eclawMarkUrl} alt="" width={18} height={18} style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#111827', userSelect: 'none' }}>EClaw</span>
         </div>
         <button type="button" className="setup-close" onClick={close} aria-label="Close">
           ×
@@ -257,12 +257,18 @@ export function App(): React.JSX.Element {
               flexShrink: 0
             }}
           >
-            <img src={openclawDarkUrl} alt="" width={64} height={64} style={{ flexShrink: 0 }} />
-            <img
-              src={openclawTextUrl}
-              alt="OpenClaw"
-              style={{ height: 32, width: 'auto', maxWidth: 200, objectFit: 'contain' }}
-            />
+            <img src={eclawMarkUrl} alt="" width={64} height={64} style={{ flexShrink: 0 }} />
+            <span
+              style={{
+                fontSize: 28,
+                fontWeight: 700,
+                letterSpacing: '-0.02em',
+                color: '#0f172a',
+                userSelect: 'none'
+              }}
+            >
+              EClaw
+            </span>
           </div>
 
           {progressActive ? (

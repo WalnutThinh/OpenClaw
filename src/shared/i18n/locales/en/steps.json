@@ -166,8 +166,8 @@
     },
     "ollamaModelsPath": {
       "title": "Store Ollama models on another drive (Windows)",
-      "help": "Pick a folder on a drive with free space (e.g. D:\\OpenClaw\\Ollama). Models are saved under a subfolder named models inside WSL at /mnt/…. Leave empty and save to use the default (/root/.ollama/models on the WSL disk).",
-      "placeholder": "D:\\OpenClaw\\Ollama",
+      "help": "Pick a folder on a drive with free space (e.g. D:\\EClaw\\Ollama). Models are saved under a subfolder named models inside WSL at /mnt/…. Leave empty and save to use the default (/root/.ollama/models on the WSL disk).",
+      "placeholder": "D:\\EClaw\\Ollama",
       "browse": "Browse…",
       "saveApply": "Save & apply to Ollama (WSL)",
       "saved": "Saved. Ollama was restarted with the new folder if systemd is available.",

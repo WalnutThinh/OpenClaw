@@ -1,4 +1,4 @@
-# OpenClaw Enchante Versioning Guide
+# EClaw (Enchante) — Versioning Guide
 
 This document defines a single source of truth for release versioning and update flow.
 
@@ -7,7 +7,7 @@ This document defines a single source of truth for release versioning and update
 The **desktop app** and **Windows zip** name follow **standard npm semver** (three numeric segments):
 
 - Examples: `1.1.0`, `1.1.1`, `1.1.2`, `1.2.0`
-- **Do not** use a leading zero in the patch segment (use **`1.1.2`**) so `package.json`, GitHub tags, and **`OpenClaw-1.1.2-win.zip`** stay aligned with electron-builder.
+- **Do not** use a leading zero in the patch segment (use **`1.1.2`**) so `package.json`, GitHub tags, and **`EClaw-1.1.2-win.zip`** (from `electron-builder` `productName`) stay aligned. Older releases may still host **`OpenClaw-*-win.zip`** until you replace the asset.
 
 Progression:
 
@@ -20,7 +20,7 @@ Progression:
 Latest **CLI** version is resolved in this order:
 
 1. `OPENCLAW_RELEASE_VERSION_URL` (recommended; deterministic source of truth)
-2. GitHub latest release tag from repo (default: `WalnutThinh/OpenClaw`)
+2. GitHub latest release tag from repo (default: `WalnutThinh/OpenClaw` — the **repo slug** can stay `OpenClaw` while the **product** zip is named `EClaw-…`)
 3. Fallback pinned version in code (`APPROVED_OPENCLAW_VERSION` in `openclaw-release.ts`)
 
 CLI tags may use a different scheme (e.g. calendar-based); that is independent of the **app** semver above.
@@ -31,12 +31,15 @@ CLI tags may use a different scheme (e.g. calendar-based); that is independent o
 
 1. Bump root `package.json` → `version` (e.g. `1.1.2`)
 2. Bump `setup-bootstrapper/package.json` → same `version` (keeps bootstrapper in sync)
-3. Build and test installer
-4. Publish installer and update download URL source if needed  
+3. Build app zip + metadata: `npm run build:win-app-zip:latest` (generates `dist/latest.json`)
+4. Upload zip (R2/GitHub) and publish updated `latest.json` (stable URL)
+5. Build and test installer (`OPENCLAW_LATEST_JSON_URL=... npm run build:win-setup`)
+6. Publish installer and update download URL source if needed  
    **Windows two-file flow (setup on Pages, zip on GitHub Releases):** see **`docs/AGENTS-WINDOWS-DISTRIBUTION.md`**.
-5. Verify app startup + wizard + update UI
+7. On GitHub: edit the **Release title** and description to say **EClaw** if you want the releases page to match the product name (the **tag** can stay e.g. `v1.1.02`; asset file should match what you put in `latest.json.url` / fallback `appZipUrl`).
+8. Verify app startup + wizard + update UI
 
-### B. If releasing a new **OpenClaw CLI** version
+### B. If releasing a new **OpenClaw CLI** (npm `openclaw`) version
 
 1. Publish release/tag per your CLI policy
 2. If using version endpoint, update it
@@ -64,7 +67,7 @@ CLI tags may use a different scheme (e.g. calendar-based); that is independent o
 - Wrong version installed:
   - verify resolved package spec from `getApprovedOpenclawPackageSpec()`
 - Windows install **HTTP 404** on zip:
-  - The **filename** must match the uploaded asset (usually **`OpenClaw-<semver from package.json>-win.zip`**, e.g. `OpenClaw-1.1.2-win.zip`).
+  - The **filename** must match the uploaded asset (usually **`EClaw-<semver from package.json>-win.zip`**, e.g. `EClaw-1.1.2-win.zip`; legacy: `OpenClaw-…`).
   - GitHub release tags may not perfectly align with `package.json` (provider quirks like a leading zero in the tag). This repo avoids mixing in our own semver filenames.
   - Verify with: `curl -sI "<your appZipUrl>"` (expect **302** from `github.com`).
   - The bootstrapper/build has logic to normalize mistaken filenames with a leading-zero patch segment and resolves a tagless `github-release-asset://` scheme to the correct GitHub tag automatically.

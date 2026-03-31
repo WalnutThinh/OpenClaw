@@ -361,7 +361,7 @@ export const registerIpcHandlers = (getWin: () => BrowserWindow | null): void =>
     if (!wsl) {
       return {
         ok: false as const,
-        error: 'Use a path like D:\\OpenClaw\\Ollama (drive letter + folder)'
+        error: 'Use a path like D:\\EClaw\\Ollama (drive letter + folder)'
       }
     }
     try {

@@ -1,6 +1,6 @@
 /**
  * Run before setup-bootstrapper `electron-builder` portable step.
- * Stops a running OPENCLAW-setup.exe and removes the previous output so
+ * Stops a running launcher and removes previous outputs so
  * electron-builder is less likely to sit on "output file is locked... waiting for unlock".
  */
 import { spawnSync } from 'node:child_process'
@@ -10,33 +10,39 @@ import { fileURLToPath } from 'node:url'
 import { setTimeout as delay } from 'node:timers/promises'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const outExe = join(root, 'dist', 'installer', 'OPENCLAW-setup.exe')
+const outExeLauncher = join(root, 'dist', 'installer', 'EClaw-Launcher.exe')
+const outExeSetupAlias = join(root, 'dist', 'installer', 'EClaw-Setup.exe')
 
 function killSetupIfWindows() {
   if (process.platform !== 'win32') return
-  spawnSync('taskkill.exe', ['/IM', 'OPENCLAW-setup.exe', '/F', '/T'], {
-    stdio: 'ignore',
-    windowsHide: true,
-  })
+  for (const name of ['EClaw-Launcher.exe', 'EClaw-Setup.exe', 'OPENCLAW-setup.exe']) {
+    spawnSync('taskkill.exe', ['/IM', name, '/F', '/T'], {
+      stdio: 'ignore',
+      windowsHide: true,
+    })
+  }
 }
 
 async function main() {
   killSetupIfWindows()
-  if (!existsSync(outExe)) {
-    console.log('[prepare-installer-pack] No previous OPENCLAW-setup.exe to remove.')
+  const outputs = [outExeLauncher, outExeSetupAlias]
+  if (!outputs.some((p) => existsSync(p))) {
+    console.log('[prepare-installer-pack] No previous launcher .exe to remove.')
     return
   }
   const attempts = 8
   const waitMs = 2500
   for (let i = 0; i < attempts; i++) {
     try {
-      unlinkSync(outExe)
-      console.log('[prepare-installer-pack] Removed previous', outExe)
+      for (const p of outputs) {
+        if (existsSync(p)) unlinkSync(p)
+      }
+      console.log('[prepare-installer-pack] Removed previous launcher executables.')
       return
     } catch (e) {
       if (i === attempts - 1) {
         console.error(
-          '[prepare-installer-pack] Cannot delete OPENCLAW-setup.exe (still locked). Close the installer, ' +
+          '[prepare-installer-pack] Cannot delete launcher .exe (still locked). Close the installer, ' +
             'exclude dist\\installer in Windows Defender, then retry.\n',
           e?.message ?? e
         )
