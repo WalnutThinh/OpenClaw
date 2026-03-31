@@ -18,7 +18,7 @@ const defaultEnchante = join(root, '..', 'enchante.cloud')
 const enchanteRoot = (process.env.ENCHANTE_CLOUD_ROOT ?? '').trim() || defaultEnchante
 const destDir = join(enchanteRoot, 'public', 'downloads')
 
-const artifacts = ['EClaw-Launcher.exe', 'EClaw-Launcher.zip', 'EClaw-Setup.exe']
+const artifacts = ['EClaw-Launcher.exe', 'EClaw-Launcher.zip']
 
 function findDistAppZip() {
   if (!existsSync(join(root, 'dist'))) return null

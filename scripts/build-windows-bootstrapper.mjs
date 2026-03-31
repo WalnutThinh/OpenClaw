@@ -242,12 +242,6 @@ function main() {
   if (install.status !== 0) process.exit(install.status ?? 1)
   const pack = spawnSync('npm', ['run', 'pack'], { cwd: bootstrapDir, stdio: 'inherit', shell: true })
   if (pack.status !== 0) process.exit(pack.status ?? 1)
-  const launcherExe = join(root, 'dist', 'installer', 'EClaw-Launcher.exe')
-  const setupAliasExe = join(root, 'dist', 'installer', 'EClaw-Setup.exe')
-  if (existsSync(launcherExe)) {
-    copyFileSync(launcherExe, setupAliasExe)
-    console.log('[build-windows-bootstrapper] Alias:', launcherExe, '→', setupAliasExe)
-  }
   console.log('[build-windows-bootstrapper] Done. Small installer: dist/installer/EClaw-Launcher.exe')
 }
 

@@ -130,7 +130,7 @@ function devPayloadZipPath(): string {
 
 type Source =
   | { kind: 'local'; path: string }
-  | { kind: 'remote'; url: string; viaLatestJson: boolean }
+  | { kind: 'remote'; url: string; viaLatestJson: boolean; fallbackZipUrl?: string }
   | { kind: 'none'; reason: string }
 
 function resolveInstallSource(): Source {
@@ -138,14 +138,27 @@ function resolveInstallSource(): Source {
     const local = devPayloadZipPath()
     if (existsSync(local)) return { kind: 'local', path: local }
     const latestJsonUrl = process.env.OPENCLAW_LATEST_JSON_URL?.trim()
-    if (latestJsonUrl) return { kind: 'remote', url: latestJsonUrl, viaLatestJson: true }
+    if (latestJsonUrl)
+      return {
+        kind: 'remote',
+        url: latestJsonUrl,
+        viaLatestJson: true,
+        fallbackZipUrl: process.env.OPENCLAW_APP_ZIP_URL?.trim() || undefined
+      }
     const envUrl = process.env.OPENCLAW_APP_ZIP_URL?.trim()
     if (envUrl) return { kind: 'remote', url: normalizeKnownBrokenGithubZipUrl(envUrl), viaLatestJson: false }
     return { kind: 'none', reason: 'DEV_NO_ZIP' }
   }
   const man = readInstallManifest()
   const latestJsonUrl = resolveLatestJsonUrl(man)
-  if (latestJsonUrl) return { kind: 'remote', url: latestJsonUrl, viaLatestJson: true }
+  if (latestJsonUrl) {
+    return {
+      kind: 'remote',
+      url: latestJsonUrl,
+      viaLatestJson: true,
+      fallbackZipUrl: man?.appZipUrl
+    }
+  }
   if (man?.appZipUrl && !/REPLACE_ME|PLACEHOLDER|OPENCLAW_APP_ZIP_REPLACE_ME/i.test(man.appZipUrl)) {
     return { kind: 'remote', url: man.appZipUrl, viaLatestJson: false }
   }
@@ -432,10 +445,19 @@ app.whenReady().then(() => {
         let expectedSha256: string | undefined
         let expectedSize: number | undefined
         if (src.viaLatestJson) {
-          const latest = await resolveLatestDownload(src.url)
-          downloadUrl = latest.downloadUrl
-          expectedSha256 = latest.sha256
-          expectedSize = latest.size
+          try {
+            const latest = await resolveLatestDownload(src.url)
+            downloadUrl = latest.downloadUrl
+            expectedSha256 = latest.sha256
+            expectedSize = latest.size
+          } catch (e) {
+            if (!src.fallbackZipUrl) throw e
+            downloadUrl = src.fallbackZipUrl.startsWith('github-release-asset://')
+              ? src.fallbackZipUrl
+              : normalizeKnownBrokenGithubZipUrl(src.fallbackZipUrl)
+            expectedSha256 = undefined
+            expectedSize = undefined
+          }
         }
         const sub = join(tmpdir(), `openclaw-setup-${randomBytes(8).toString('hex')}`)
         mkdirSync(sub, { recursive: true })
